@@ -15,7 +15,7 @@ type UpdateChecker struct {
 // TODO: Remove hardcoded value
 const chatID = -826459712
 
-func (uc *UpdateChecker) Start(ctx context.Context, delay time.Duration) {
+func (uc *UpdateChecker) Start(ctx context.Context, delay time.Duration) error {
 	ticker := time.NewTicker(delay)
 	defer ticker.Stop()
 
@@ -29,7 +29,7 @@ func (uc *UpdateChecker) Start(ctx context.Context, delay time.Duration) {
 			}
 
 		case <-ctx.Done():
-			return
+			return ctx.Err()
 		}
 	}
 }

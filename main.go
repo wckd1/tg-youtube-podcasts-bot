@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"log"
+	"os"
+	"os/signal"
 	"time"
 	"wckd1/tg-youtube-podcasts-bot/handlers"
 	"wckd1/tg-youtube-podcasts-bot/util"
@@ -16,7 +18,7 @@ func main() {
 		log.Fatal("Cannot load config:", err)
 	}
 
-	ctx := context.TODO()
+	ctx, cancel := context.WithCancel(context.Background())
 	tgAPI, err := tgbotapi.NewBotAPI(config.BotAPIToken)
 	if err != nil {
 		log.Fatal("Cannot init bot api:", err)
@@ -24,18 +26,30 @@ func main() {
 
 	tgAPI.Debug = config.DebugMode
 
+	// Grasefull quit
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
+
+	go func() {
+		<-quit
+		cancel()
+	}()
+
 	// Timer to handle check for updates
 	updateChecker := handlers.UpdateChecker{
 		BotAPI: tgAPI,
 	}
-	go updateChecker.Start(ctx, time.Second*time.Duration(config.UpdateInterval))
+	go func() {
+		if err := updateChecker.Start(ctx, time.Second*time.Duration(config.UpdateInterval)); err != nil {
+			log.Fatalf("update checker stopped, %v", err)
+		}
+	}()
 
 	// Telegram listener to handle commands
 	tgListener := handlers.TelegramListener{
 		BotAPI: tgAPI,
 	}
-	tgListener.Start(ctx)
 	if err := tgListener.Start(ctx); err != nil {
-		log.Fatalf("[ERROR] telegram listener failed, %v", err)
+		log.Fatalf("telegram listener stopped, %v", err)
 	}
 }
