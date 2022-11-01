@@ -5,6 +5,7 @@ import "github.com/spf13/viper"
 type Config struct {
 	BotAPIToken    string `mapstructure:"BOT_API_TOKEN"`
 	DebugMode      bool   `mapstructure:"DEBUG_MODE"`
+	UpdateInterval int    `mapstructure:"UPDATE_INTERVAL"`
 }
 
 func LoadConfig(path string) (c Config, err error) {

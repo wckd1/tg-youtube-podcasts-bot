@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"time"
 	"wckd1/tg-youtube-podcasts-bot/handlers"
 	"wckd1/tg-youtube-podcasts-bot/util"
 
@@ -22,6 +23,12 @@ func main() {
 	}
 
 	tgAPI.Debug = config.DebugMode
+
+	// Timer to handle check for updates
+	updateChecker := handlers.UpdateChecker{
+		BotAPI: tgAPI,
+	}
+	go updateChecker.Start(ctx, time.Second*time.Duration(config.UpdateInterval))
 
 	// Telegram listener to handle commands
 	tgListener := handlers.TelegramListener{
