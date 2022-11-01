@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"log"
+	"wckd1/tg-youtube-podcasts-bot/handlers"
 	"wckd1/tg-youtube-podcasts-bot/util"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -13,26 +15,20 @@ func main() {
 		log.Fatal("Cannot load config:", err)
 	}
 
-	bot, err := tgbotapi.NewBotAPI(config.BotAPIToken)
+	ctx := context.TODO()
+	tgAPI, err := tgbotapi.NewBotAPI(config.BotAPIToken)
 	if err != nil {
-		panic(err)
+		log.Fatal("Cannot init bot api:", err)
 	}
 
-	bot.Debug = config.DebugMode
-	updateConfig := tgbotapi.NewUpdate(0)
-	updateConfig.Timeout = 30
-	updates := bot.GetUpdatesChan(updateConfig)
+	tgAPI.Debug = config.DebugMode
 
-	for update := range updates {
-		if update.Message == nil {
-			continue
-		}
-
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
-		msg.ReplyToMessageID = update.Message.MessageID
-
-		if _, err := bot.Send(msg); err != nil {
-			panic(err)
-		}
+	// Telegram listener to handle commands
+	tgListener := handlers.TelegramListener{
+		BotAPI: tgAPI,
+	}
+	tgListener.Start(ctx)
+	if err := tgListener.Start(ctx); err != nil {
+		log.Fatalf("[ERROR] telegram listener failed, %v", err)
 	}
 }

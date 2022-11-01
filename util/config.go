@@ -3,8 +3,8 @@ package util
 import "github.com/spf13/viper"
 
 type Config struct {
-	BotAPIToken string `mapstructure:"BOT_API_TOKEN"`
-	DebugMode   bool   `mapstructure:"DEBUG_MODE"`
+	BotAPIToken    string `mapstructure:"BOT_API_TOKEN"`
+	DebugMode      bool   `mapstructure:"DEBUG_MODE"`
 }
 
 func LoadConfig(path string) (c Config, err error) {
