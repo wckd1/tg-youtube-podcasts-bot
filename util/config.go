@@ -1,15 +1,19 @@
 package util
 
-import "github.com/spf13/viper"
+import (
+	"time"
+
+	"github.com/spf13/viper"
+)
 
 type Config struct {
-	BotAPIToken    string `mapstructure:"BOT_API_TOKEN"`
-	DebugMode      bool   `mapstructure:"DEBUG_MODE"`
-	UpdateInterval int    `mapstructure:"UPDATE_INTERVAL"`
+	BotAPIToken    string        `mapstructure:"BOT_API_TOKEN"`
+	DebugMode      bool          `mapstructure:"DEBUG_MODE"`
+	UpdateInterval time.Duration `mapstructure:"UPDATE_INTERVAL"`
 }
 
-func LoadConfig(path string) (c Config, err error) {
-	viper.AddConfigPath(path)
+func LoadConfig() (c Config, err error) {
+	viper.AddConfigPath("./")
 	viper.SetConfigName("app")
 	viper.SetConfigType("env")
 	viper.AutomaticEnv()

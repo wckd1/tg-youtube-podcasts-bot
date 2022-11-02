@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"time"
+	"wckd1/tg-youtube-podcasts-bot/bot"
 	"wckd1/tg-youtube-podcasts-bot/handlers"
 	"wckd1/tg-youtube-podcasts-bot/util"
 
@@ -13,7 +13,7 @@ import (
 )
 
 func main() {
-	config, err := util.LoadConfig(".")
+	config, err := util.LoadConfig()
 	if err != nil {
 		log.Fatal("Cannot load config:", err)
 	}
@@ -40,16 +40,22 @@ func main() {
 		BotAPI: tgAPI,
 	}
 	go func() {
-		if err := updateChecker.Start(ctx, time.Second*time.Duration(config.UpdateInterval)); err != nil {
-			log.Fatalf("update checker stopped, %v", err)
+		if err := updateChecker.Start(ctx, config.UpdateInterval); err != nil {
+			log.Printf("[INFO] update checker stopped, %v", err)
 		}
 	}()
 
+	// Config available commands
+	commands := bot.Commands{
+		bot.Add{},
+	}
+
 	// Telegram listener to handle commands
 	tgListener := handlers.TelegramListener{
-		BotAPI: tgAPI,
+		BotAPI:   tgAPI,
+		Commands: commands,
 	}
 	if err := tgListener.Start(ctx); err != nil {
-		log.Fatalf("telegram listener stopped, %v", err)
+		log.Printf("[INFO] telegram listener stopped, %v", err)
 	}
 }
