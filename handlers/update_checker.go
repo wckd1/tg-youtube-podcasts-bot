@@ -4,27 +4,28 @@ import (
 	"context"
 	"log"
 	"time"
-
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
+// UpdateChecker is a task runner that check for updates with delay
 type UpdateChecker struct {
-	BotAPI *tgbotapi.BotAPI
+	Delay     time.Duration
+	Submitter Submitter
 }
 
-// TODO: Remove hardcoded value
-const chatID = -826459712
+// Submitter defines interface to submit (usually asynchronously) to the chat
+type Submitter interface {
+	Submit(ctx context.Context, text string) error
+}
 
-func (uc *UpdateChecker) Start(ctx context.Context, delay time.Duration) error {
-	ticker := time.NewTicker(delay)
+func (uc UpdateChecker) Start(ctx context.Context) error {
+	ticker := time.NewTicker(uc.Delay)
 	defer ticker.Stop()
 
 	for {
 		select {
 
 		case <-ticker.C:
-			msg := tgbotapi.NewMessage(chatID, "Checked for update")
-			if _, err := uc.BotAPI.Send(msg); err != nil {
+			if err := uc.Submitter.Submit(ctx, "Checked for update"); err != nil {
 				log.Panic(err)
 			}
 

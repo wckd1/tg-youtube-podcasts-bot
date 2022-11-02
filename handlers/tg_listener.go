@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sync"
 	"wckd1/tg-youtube-podcasts-bot/bot"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -12,12 +13,22 @@ import (
 type TelegramListener struct {
 	BotAPI   *tgbotapi.BotAPI
 	Commands bot.Command
+	ChatID   int64
+
+	msgs struct {
+		once sync.Once
+		ch   chan bot.Response
+	}
 }
 
 // Process events
 func (l *TelegramListener) Start(ctx context.Context) error {
+	l.msgs.once.Do(func() {
+		l.msgs.ch = make(chan bot.Response, 100)
+	})
+
 	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 30
+	u.Timeout = 60
 	updates := l.BotAPI.GetUpdatesChan(u)
 
 	for {
@@ -42,6 +53,11 @@ func (l *TelegramListener) Start(ctx context.Context) error {
 			if err := l.sendBotResponse(resp, update.Message.Chat.ID); err != nil {
 				log.Printf("[WARN] failed to respond on update, %v", err)
 			}
+
+		case resp := <-l.msgs.ch: // publish messages from outside clients
+			if err := l.sendBotResponse(resp, l.ChatID); err != nil {
+				log.Printf("[WARN] failed to respond on submitted request, %v", err)
+			}
 		}
 	}
 }
@@ -56,6 +72,18 @@ func (l *TelegramListener) sendBotResponse(resp bot.Response, chatID int64) erro
 
 	if _, err := l.BotAPI.Send(msg); err != nil {
 		return fmt.Errorf("can't send message to telegram %q: %w", resp.Text, err)
+	}
+
+	return nil
+}
+
+func (l *TelegramListener) Submit(ctx context.Context, text string) error {
+	l.msgs.once.Do(func() { l.msgs.ch = make(chan bot.Response, 100) })
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case l.msgs.ch <- bot.Response{Text: text, Send: true}:
 	}
 
 	return nil

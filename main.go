@@ -35,16 +35,6 @@ func main() {
 		cancel()
 	}()
 
-	// Timer to handle check for updates
-	updateChecker := handlers.UpdateChecker{
-		BotAPI: tgAPI,
-	}
-	go func() {
-		if err := updateChecker.Start(ctx, config.UpdateInterval); err != nil {
-			log.Printf("[INFO] update checker stopped, %v", err)
-		}
-	}()
-
 	// Config available commands
 	commands := bot.Commands{
 		bot.Add{},
@@ -54,7 +44,21 @@ func main() {
 	tgListener := handlers.TelegramListener{
 		BotAPI:   tgAPI,
 		Commands: commands,
+		ChatID:   -826459712,
 	}
+
+	// Timer to handle check for updates
+	updateChecker := handlers.UpdateChecker{
+		Delay:     config.UpdateInterval,
+		Submitter: &tgListener,
+	}
+
+	// Start handlers
+	go func() {
+		if err := updateChecker.Start(ctx); err != nil {
+			log.Printf("[INFO] update checker stopped, %v", err)
+		}
+	}()
 	if err := tgListener.Start(ctx); err != nil {
 		log.Printf("[INFO] telegram listener stopped, %v", err)
 	}
