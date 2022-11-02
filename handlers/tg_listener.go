@@ -49,8 +49,9 @@ func (l *TelegramListener) Start(ctx context.Context) error {
 				continue
 			}
 
-			resp := l.Commands.OnMessage(*update.Message)
-			if err := l.sendBotResponse(resp, update.Message.Chat.ID); err != nil {
+			msg := l.transform(update.Message)
+			resp := l.Commands.OnMessage(*msg)
+			if err := l.sendBotResponse(resp, l.ChatID); err != nil {
 				log.Printf("[WARN] failed to respond on update, %v", err)
 			}
 
@@ -87,4 +88,14 @@ func (l *TelegramListener) Submit(ctx context.Context, text string) error {
 	}
 
 	return nil
+}
+
+func (l *TelegramListener) transform(msg *tgbotapi.Message) *bot.Message {
+	message := bot.Message{
+		ID:        msg.MessageID,
+		Command:   msg.Command(),
+		Arguments: msg.CommandArguments(),
+	}
+
+	return &message
 }

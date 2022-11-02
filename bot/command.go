@@ -6,24 +6,18 @@ import (
 	"strings"
 
 	"github.com/go-pkgz/syncs"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 type Command interface {
-	OnMessage(msg tgbotapi.Message) Response
+	OnMessage(msg Message) Response
 	ReactOn() (res []string)
-}
-
-type Response struct {
-	Text string
-	Send bool
 }
 
 // Commands combines many commands to one virtual
 type Commands []Command
 
 // OnMessage pass msg to all commands and collects responses (combining all of them)
-func (c Commands) OnMessage(msg tgbotapi.Message) Response {
+func (c Commands) OnMessage(msg Message) Response {
 	resps := make(chan string)
 
 	wg := syncs.NewSizedGroup(4)
