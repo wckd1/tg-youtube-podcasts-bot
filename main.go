@@ -6,22 +6,33 @@ import (
 	"os"
 	"os/signal"
 	"wckd1/tg-youtube-podcasts-bot/bot"
+	db "wckd1/tg-youtube-podcasts-bot/db/store"
 	"wckd1/tg-youtube-podcasts-bot/handlers"
 	"wckd1/tg-youtube-podcasts-bot/util"
 
+	"database/sql"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
 	config, err := util.LoadConfig()
 	if err != nil {
-		log.Fatal("Cannot load config:", err)
+		log.Fatal("[ERROR] cannot load config:", err)
 	}
+
+	dbConn, err := sql.Open("sqlite3", "./storage/yt_podcasts.db")
+	if err != nil {
+		log.Fatal("[ERROR] cannot connect to database:", err)
+	}
+	// TODO: Run migrations
+	dbStore := db.NewStore(dbConn)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	tgAPI, err := tgbotapi.NewBotAPI(config.BotAPIToken)
 	if err != nil {
-		log.Fatal("Cannot init bot api:", err)
+		log.Fatal("[ERROR] cannot init bot api:", err)
 	}
 
 	tgAPI.Debug = config.DebugMode
@@ -32,22 +43,23 @@ func main() {
 
 	go func() {
 		<-quit
+		dbConn.Close()
 		cancel()
 	}()
 
 	// Config available commands
 	commands := bot.Commands{
-		bot.Add{},
+		bot.Add{Store: dbStore},
 	}
 
-	// Telegram listener to handle commands
+	// Telegram listener for handle commands
 	tgListener := handlers.TelegramListener{
 		BotAPI:   tgAPI,
 		Commands: commands,
-		ChatID:   -826459712,
+		ChatID:   config.ChatID,
 	}
 
-	// Timer to handle check for updates
+	// Timer handler for handle updates
 	updateChecker := handlers.UpdateChecker{
 		Delay:     config.UpdateInterval,
 		Submitter: &tgListener,

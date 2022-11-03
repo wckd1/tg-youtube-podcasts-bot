@@ -8,6 +8,7 @@ import (
 
 type Config struct {
 	BotAPIToken    string        `mapstructure:"BOT_API_TOKEN"`
+	ChatID         int64         `mapstructure:"CHAT_ID"`
 	DebugMode      bool          `mapstructure:"DEBUG_MODE"`
 	UpdateInterval time.Duration `mapstructure:"UPDATE_INTERVAL"`
 }
