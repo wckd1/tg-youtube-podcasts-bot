@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"embed"
 	"log"
 	"os"
 	"os/signal"
@@ -16,6 +17,9 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+//go:embed db/migration
+var migrations embed.FS
+
 func main() {
 	config, err := util.LoadConfig()
 	if err != nil {
@@ -26,7 +30,9 @@ func main() {
 	if err != nil {
 		log.Fatal("[ERROR] cannot connect to database:", err)
 	}
-	// TODO: Run migrations
+	if err := db.Migrate(dbConn, migrations); err != nil {
+		log.Printf("[INFO] Database migration failed: %v", err)
+	}
 	dbStore := db.NewStore(dbConn)
 
 	ctx, cancel := context.WithCancel(context.Background())
