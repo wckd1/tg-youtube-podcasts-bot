@@ -5,13 +5,14 @@ import (
 )
 
 const createSubscription = `
-INSERT INTO subscriptions(channel, title)
-VALUES(?,?)
+INSERT INTO subscriptions(source_path, source_type, title)
+VALUES(?,?,?)
 `
 
 type CreateSubscriptionParams struct {
-	Channel string `json:"channel"`
-	Title   string `json:"title"`
+	SourcePath string
+	SourceType SourceType
+	Title      string
 }
 
 func (q *Queries) CreateSubsctiption(ctx context.Context, arg CreateSubscriptionParams) error {
@@ -19,6 +20,6 @@ func (q *Queries) CreateSubsctiption(ctx context.Context, arg CreateSubscription
 	if err != nil {
 		return err
 	}
-	_, err = stmt.ExecContext(ctx, arg.Channel, arg.Title)
+	_, err = stmt.ExecContext(ctx, arg.SourcePath, arg.SourceType, arg.Title)
 	return err
 }

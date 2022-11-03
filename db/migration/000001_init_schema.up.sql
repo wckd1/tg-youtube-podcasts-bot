@@ -1,5 +1,7 @@
 CREATE TABLE "subscriptions" (
   "id" INTEGER PRIMARY KEY,
-  "channel" TEXT NOT NULL,
-  "title" TEXT NOT NULL
+  "source_path" TEXT NOT NULL,
+  "source_type" TEXT NOT NULL,
+  "title" TEXT,
+  UNIQUE("source_path","title")
 );
