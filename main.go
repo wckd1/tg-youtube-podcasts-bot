@@ -55,7 +55,10 @@ func main() {
 
 	// Config available commands
 	commands := bot.Commands{
-		bot.Add{Store: dbStore},
+		bot.Add{
+			Context: ctx,
+			Store:   dbStore,
+		},
 	}
 
 	// Telegram listener for handle commands
