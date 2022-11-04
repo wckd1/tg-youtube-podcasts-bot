@@ -23,7 +23,7 @@ func (a Add) OnMessage(msg Message) Response {
 		return Response{}
 	}
 
-	params, err := parseParams(msg.Arguments)
+	params, err := parseAddParams(msg.Arguments)
 	if err != nil {
 		log.Printf("[ERROR] failed to parse arguments, %v", err)
 		return Response{
@@ -56,11 +56,11 @@ func (a Add) OnMessage(msg Message) Response {
 
 // ReactOn keys
 func (a Add) ReactOn() []string {
-	return []string{"add", "new"}
+	return []string{"add", "new", "sub"}
 }
 
 // Parse params to detect subscription details
-func parseParams(arguments string) (params db.CreateSubscriptionParams, err error) {
+func parseAddParams(arguments string) (params db.CreateSubscriptionParams, err error) {
 	params = db.CreateSubscriptionParams{}
 
 	// Check if arguments contains link
