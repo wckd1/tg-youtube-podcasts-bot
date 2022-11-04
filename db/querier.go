@@ -7,6 +7,7 @@ import (
 type Querier interface {
 	CreateSubsctiption(sub *Subscription) error
 	DeleteSubsctiption(sub *Subscription) error
+	CreateDownload(d *Download) (int, error)
 }
 
 var _ Querier = (*Queries)(nil)

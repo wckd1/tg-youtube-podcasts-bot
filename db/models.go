@@ -14,3 +14,11 @@ type Subscription struct {
 	SourceType SourceType
 	Title      string
 }
+
+type Download struct {
+	ID          int64
+	AudioURL    string
+	CoverURL    string
+	Title       string
+	Description string
+}

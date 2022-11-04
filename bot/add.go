@@ -5,13 +5,15 @@ import (
 	"log"
 	"net/url"
 	"strings"
-	db "wckd1/tg-youtube-podcasts-bot/db/store"
+	db "wckd1/tg-youtube-podcasts-bot/db"
+	"wckd1/tg-youtube-podcasts-bot/loader"
 
 	"mvdan.cc/xurls"
 )
 
 type Add struct {
 	Store   db.Store
+	Loader  loader.Interface
 }
 
 // OnMessage return new subscription status
@@ -19,7 +21,7 @@ func (a Add) OnMessage(msg Message) Response {
 	if !contains(a.ReactOn(), msg.Command) {
 		return Response{}
 	}
-
+	
 	sub, err := parseSubscription(msg.Arguments)
 	if err != nil {
 		log.Printf("[ERROR] failed to parse arguments, %v", err)
@@ -28,7 +30,15 @@ func (a Add) OnMessage(msg Message) Response {
 			Send: true,
 		}
 	}
-
+	// If requested single video - just load it
+	if params.SourceType == db.Video {
+		a.Loader.Download(params.SourcePath)
+		return Response{
+			Text: "Single video started loading",
+			Send: true,
+		}
+	}
+	
 	err = a.Store.CreateSubsctiption(&sub)
 	if err != nil {
 		log.Printf("[ERROR] failed to create subscription, %v", err)

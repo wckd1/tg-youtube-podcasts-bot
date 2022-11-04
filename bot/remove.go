@@ -2,7 +2,7 @@ package bot
 
 import (
 	"log"
-	db "wckd1/tg-youtube-podcasts-bot/db/store"
+	db "wckd1/tg-youtube-podcasts-bot/db"
 )
 
 type Remove struct {

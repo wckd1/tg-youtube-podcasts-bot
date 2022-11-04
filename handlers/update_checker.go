@@ -2,19 +2,20 @@ package handlers
 
 import (
 	"context"
-	"log"
 	"time"
+	"wckd1/tg-youtube-podcasts-bot/loader"
 )
 
 // UpdateChecker is a task runner that check for updates with delay
 type UpdateChecker struct {
 	Delay     time.Duration
 	Submitter Submitter
+	Loader    loader.Interface
 }
 
 // Submitter defines interface to submit (usually asynchronously) to the chat
 type Submitter interface {
-	Submit(ctx context.Context, text string) error
+	SubmitText(ctx context.Context, text string)
 }
 
 func (uc UpdateChecker) Start(ctx context.Context) error {
@@ -25,9 +26,7 @@ func (uc UpdateChecker) Start(ctx context.Context) error {
 		select {
 
 		case <-ticker.C:
-			if err := uc.Submitter.Submit(ctx, "Checked for update"); err != nil {
-				log.Panic(err)
-			}
+			uc.Submitter.SubmitText(ctx, "Checked for update")
 
 		case <-ctx.Done():
 			return ctx.Err()

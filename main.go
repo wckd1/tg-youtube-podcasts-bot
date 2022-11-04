@@ -6,8 +6,9 @@ import (
 	"os"
 	"os/signal"
 	"wckd1/tg-youtube-podcasts-bot/bot"
-	db "wckd1/tg-youtube-podcasts-bot/db/store"
+	db "wckd1/tg-youtube-podcasts-bot/db"
 	"wckd1/tg-youtube-podcasts-bot/handlers"
+	"wckd1/tg-youtube-podcasts-bot/loader"
 	"wckd1/tg-youtube-podcasts-bot/util"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -52,15 +53,25 @@ func main() {
 
 	// Telegram listener for handle commands
 	tgListener := handlers.TelegramListener{
-		BotAPI:   tgAPI,
+		BotAPI: tgAPI,
 		Commands: commands,
-		ChatID:   config.ChatID,
+		ChatID: config.ChatID,
+	}
+
+	// Config loader
+	loader := loader.NewLoader(ctx, dbStore, &tgListener)
+
+	// Config available commands
+	tgListener.Commands = bot.Commands{
+		bot.Add{Context: ctx, Store: dbStore, Loader: loader},
+		bot.Remove{Context: ctx, Store: dbStore},
 	}
 
 	// Timer handler for handle updates
 	updateChecker := handlers.UpdateChecker{
 		Delay:     config.UpdateInterval,
 		Submitter: &tgListener,
+		Loader:    loader,
 	}
 
 	// Start handlers
