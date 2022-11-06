@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -19,9 +19,9 @@ type YTLoader struct {
 }
 
 const (
-	cmdArgs  = `-x --audio-format=mp3 --audio-quality=0 -f m4a/bestaudio "https://www.youtube.com/watch?v=%s" --write-info-json --no-progress -o %s.mp3`
+	ytdlpCmd  = "yt-dlp -x --audio-format=mp3 --audio-quality=0 -f m4a/bestaudio --write-info-json --no-progress -o %s.tmp https://www.youtube.com/watch?v=%s"
 	destPath = "./storage/downloads/"
-	infoExt  = ".mp3.info.json"
+	infoExt  = ".tmp.info.json"
 )
 
 func NewLoader(ctx context.Context, db db.Store, submitter Submitter) Interface {
@@ -34,15 +34,17 @@ func NewLoader(ctx context.Context, db db.Store, submitter Submitter) Interface 
 
 func (l YTLoader) Download(id string) {
 	// Load audio with metadata
-	argsStr := fmt.Sprintf(cmdArgs, id, id)
-	cmd := exec.CommandContext(l.Context, "yt-dlp", argsStr)
+	cmdStr := fmt.Sprintf(ytdlpCmd, id, id)
+	cmd := exec.CommandContext(l.Context, "sh", "-c", cmdStr)
 	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
 	cmd.Dir = destPath
 
 	log.Printf("[DEBUG] executing command: %s", cmd.String())
 	if err := cmd.Run(); err != nil {
 		log.Printf("[ERROR] failed to execute command: %v", err)
 		l.Submitter.SubmitText(l.Context, "failed to download")
+		return
 	}
 
 	// Get image, title and description
@@ -50,10 +52,11 @@ func (l YTLoader) Download(id string) {
 	if err != nil {
 		log.Printf("[ERROR] failed to open info json: %v", err)
 		l.Submitter.SubmitText(l.Context, "failed to download")
+		return
 	}
 	defer jsonInfo.Close()
 
-	byteValue, _ := ioutil.ReadAll(jsonInfo)
+	byteValue, _ := io.ReadAll(jsonInfo)
 
 	var data struct {
 		Title       string `json:"title"`
