@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"embed"
 	"log"
 	"os"
 	"os/signal"
@@ -11,14 +10,9 @@ import (
 	"wckd1/tg-youtube-podcasts-bot/handlers"
 	"wckd1/tg-youtube-podcasts-bot/util"
 
-	"database/sql"
-
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	_ "github.com/mattn/go-sqlite3"
+	bolt "go.etcd.io/bbolt"
 )
-
-//go:embed db/migration
-var migrations embed.FS
 
 func main() {
 	config, err := util.LoadConfig()
@@ -26,12 +20,9 @@ func main() {
 		log.Fatal("[ERROR] cannot load config:", err)
 	}
 
-	dbConn, err := sql.Open("sqlite3", "./storage/yt_podcasts.db")
+	dbConn, err := bolt.Open("storage/yt_podcasts.db", 0666, nil)
 	if err != nil {
 		log.Fatal("[ERROR] cannot connect to database:", err)
-	}
-	if err := db.Migrate(dbConn, migrations); err != nil {
-		log.Printf("[INFO] Database migration failed: %v", err)
 	}
 	dbStore := db.NewStore(dbConn)
 
@@ -55,8 +46,8 @@ func main() {
 
 	// Config available commands
 	commands := bot.Commands{
-		bot.Add{Context: ctx, Store: dbStore},
-		bot.Remove{Context: ctx, Store: dbStore},
+		bot.Add{Store: dbStore},
+		bot.Remove{Store: dbStore},
 	}
 
 	// Telegram listener for handle commands

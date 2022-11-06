@@ -1,59 +1,34 @@
 package db
 
 import (
-	"context"
+	"encoding/json"
+
+	bolt "go.etcd.io/bbolt"
 )
 
-const createSubscription = `
-INSERT INTO subscriptions(source_path, source_type, title)
-VALUES(?,?,?)
-`
+func (q *Queries) CreateSubsctiption(sub *Subscription) error {
+    return q.db.Update(func(tx *bolt.Tx) error {
+        b, err := tx.CreateBucketIfNotExists([]byte("subscriptions"))
+        if err != nil {
+            return err
+        }
 
-type CreateSubscriptionParams struct {
-	SourcePath string
-	SourceType SourceType
-	Title      string
+        buf, err := json.Marshal(sub)
+        if err != nil {
+            return err
+        }
+
+        return b.Put([]byte(sub.ID), buf)
+	})
 }
 
-func (q *Queries) CreateSubsctiption(ctx context.Context, arg CreateSubscriptionParams) error {
-	stmt, err := q.db.PrepareContext(ctx, createSubscription)
-	if err != nil {
-		return err
-	}
-	_, err = stmt.ExecContext(ctx, arg.SourcePath, arg.SourceType, arg.Title)
-	return err
-}
+func (q *Queries) DeleteSubsctiption(sub *Subscription) error {
+    return q.db.Update(func(tx *bolt.Tx) error {
+        b, err := tx.CreateBucketIfNotExists([]byte("subscriptions"))
+        if err != nil {
+            return err
+        }
 
-const deleteSubscription = `
-DELETE FROM subscriptions
-WHERE source_path = ?
-`
-
-type DeleteSubscriptionParams struct {
-	SourcePath string
-	Title      string
-}
-
-func (q *Queries) DeleteSubsctiption(ctx context.Context, arg DeleteSubscriptionParams) error {
-	stmt, err := q.db.PrepareContext(ctx, deleteSubscription)
-	if err != nil {
-		return err
-	}
-	_, err = stmt.ExecContext(ctx, arg.SourcePath)
-	return err
-}
-
-const deleteTitledSubscription = `
-DELETE FROM subscriptions
-WHERE source_path = ?
-AND title = ?
-`
-
-func (q *Queries) DeleteTitledSubsctiption(ctx context.Context, arg DeleteSubscriptionParams) error {
-	stmt, err := q.db.PrepareContext(ctx, deleteTitledSubscription)
-	if err != nil {
-		return err
-	}
-	_, err = stmt.ExecContext(ctx, arg.SourcePath, arg.Title)
-	return err
+		return b.Delete([]byte(sub.ID))
+	})
 }

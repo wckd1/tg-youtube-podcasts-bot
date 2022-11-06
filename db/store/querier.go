@@ -1,22 +1,20 @@
 package db
 
 import (
-	"context"
-	"database/sql"
+	bolt "go.etcd.io/bbolt"
 )
 
 type Querier interface {
-	CreateSubsctiption(ctx context.Context, arg CreateSubscriptionParams) error
-	DeleteSubsctiption(ctx context.Context, arg DeleteSubscriptionParams) error
-	DeleteTitledSubsctiption(ctx context.Context, arg DeleteSubscriptionParams) error
+	CreateSubsctiption(sub *Subscription) error
+	DeleteSubsctiption(sub *Subscription) error
 }
 
 var _ Querier = (*Queries)(nil)
 
 type Queries struct {
-	db *sql.DB
+	db *bolt.DB
 }
 
-func New(db *sql.DB) *Queries {
+func New(db *bolt.DB) *Queries {
 	return &Queries{db: db}
 }

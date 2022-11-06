@@ -9,7 +9,7 @@ const (
 )
 
 type Subscription struct {
-	ID         int64
+	ID         string
 	SourcePath string
 	SourceType SourceType
 	Title      string

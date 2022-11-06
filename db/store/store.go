@@ -1,20 +1,20 @@
 package db
 
 import (
-	"database/sql"
+	bolt "go.etcd.io/bbolt"
 )
 
 type Store interface {
 	Querier
 }
 
-type SQLStore struct {
-	db *sql.DB
+type BoltStore struct {
+	db *bolt.DB
 	*Queries
 }
 
-func NewStore(db *sql.DB) Store {
-	return &SQLStore{
+func NewStore(db *bolt.DB) Store {
+	return &BoltStore{
 		db:      db,
 		Queries: New(db),
 	}

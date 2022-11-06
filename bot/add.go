@@ -1,19 +1,16 @@
 package bot
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/url"
 	"strings"
 	db "wckd1/tg-youtube-podcasts-bot/db/store"
 
-	"github.com/mattn/go-sqlite3"
 	"mvdan.cc/xurls"
 )
 
 type Add struct {
-	Context context.Context
 	Store   db.Store
 }
 
@@ -23,7 +20,7 @@ func (a Add) OnMessage(msg Message) Response {
 		return Response{}
 	}
 
-	params, err := parseAddParams(msg.Arguments)
+	sub, err := parseSubscription(msg.Arguments)
 	if err != nil {
 		log.Printf("[ERROR] failed to parse arguments, %v", err)
 		return Response{
@@ -32,16 +29,16 @@ func (a Add) OnMessage(msg Message) Response {
 		}
 	}
 
-	err = a.Store.CreateSubsctiption(a.Context, params)
+	err = a.Store.CreateSubsctiption(&sub)
 	if err != nil {
 		log.Printf("[ERROR] failed to create subscription, %v", err)
 
 		errMsg := "Failed to create subscription"
-		if sqliteErr, ok := err.(sqlite3.Error); ok {
-			if sqliteErr.Code == sqlite3.ErrConstraint {
-				errMsg = "This subscription is alreay added"
-			}
-		}
+		// if sqliteErr, ok := err.(sqlite3.Error); ok {
+		// 	if sqliteErr.Code == sqlite3.ErrConstraint {
+		// 		errMsg = "This subscription is alreay added"
+		// 	}
+		// }
 		return Response{
 			Text: errMsg,
 			Send: true,
@@ -60,8 +57,8 @@ func (a Add) ReactOn() []string {
 }
 
 // Parse params to detect subscription details
-func parseAddParams(arguments string) (params db.CreateSubscriptionParams, err error) {
-	params = db.CreateSubscriptionParams{}
+func parseSubscription(arguments string) (sub db.Subscription, err error) {
+	sub = db.Subscription{}
 
 	// Check if arguments contains link
 	furl := xurls.Relaxed.FindString(arguments)
@@ -76,7 +73,7 @@ func parseAddParams(arguments string) (params db.CreateSubscriptionParams, err e
 		err = fmt.Errorf("only youtube links are supported")
 		return
 	}
-	params.SourcePath = furl
+	sub.SourcePath = furl
 
 	// Check link type
 	path := strings.Split(purl.Path, "/")[1]
@@ -84,18 +81,25 @@ func parseAddParams(arguments string) (params db.CreateSubscriptionParams, err e
 	// Check if passed video link
 	case "watch":
 		// Check if video is in playlist
-		if _, ok := purl.Query()["list"]; ok {
-			params.SourceType = db.Playlist
+		if listID, ok := purl.Query()["list"]; ok {
+			sub.ID = listID[0]
+			sub.SourceType = db.Playlist
+		} else if videoID, ok := purl.Query()["v"]; ok{
+			sub.ID = videoID[0]
+			sub.SourceType = db.Video
 		} else {
-			params.SourceType = db.Video
+			err = fmt.Errorf("unrecognized link type")
 		}
 	// Check if passed channel link
 	case "c", "channel":
-		params.SourceType = db.Channel
+		sub.SourceType = db.Channel
 
 		// Parse title
 		title := strings.ReplaceAll(arguments, furl, "")
-		params.Title = strings.TrimSpace(title)
+		sub.Title = strings.TrimSpace(title)
+
+		key_prefix := strings.Split(purl.Path, "/")[2]
+		sub.ID = strings.Join([]string{key_prefix, sub.Title}, "_") // TODO: check
 	// Other links are unsupported
 	default:
 		err = fmt.Errorf("unrecognized link type")
