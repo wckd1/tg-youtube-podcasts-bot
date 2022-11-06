@@ -65,13 +65,13 @@ func (l YTLoader) Download(id string) {
 	// TODO: Upload file to Telegram
 
 	// Save uploaded file's info
-	params := db.CreateDownloadParams{
+	download := db.Download{
 		Path:        filepath.Join(destPath, id+".mp3"),
 		CoverURL:    data.ImageURL,
 		Title:       data.Title,
 		Description: data.Description,
 	}
-	download, err := l.Store.CreateDownload(l.Context, params)
+	err = l.Store.CreateDownload(&download)
 	if err != nil {
 		log.Printf("[ERROR] failed to download, %v", err)
 		l.Submitter.SubmitText(l.Context, "failed to download")

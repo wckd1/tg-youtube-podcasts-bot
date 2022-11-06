@@ -16,7 +16,7 @@ type Subscription struct {
 }
 
 type Download struct {
-	ID          int64
+	ID          int
 	Path        string
 	CoverURL    string
 	Title       string

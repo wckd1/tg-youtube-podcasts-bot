@@ -44,17 +44,10 @@ func main() {
 		dbConn.Close()
 		cancel()
 	}()
-
-	// Config available commands
-	commands := bot.Commands{
-		bot.Add{Store: dbStore},
-		bot.Remove{Store: dbStore},
-	}
-
+	
 	// Telegram listener for handle commands
 	tgListener := handlers.TelegramListener{
 		BotAPI: tgAPI,
-		Commands: commands,
 		ChatID: config.ChatID,
 	}
 
@@ -63,8 +56,8 @@ func main() {
 
 	// Config available commands
 	tgListener.Commands = bot.Commands{
-		bot.Add{Context: ctx, Store: dbStore, Loader: loader},
-		bot.Remove{Context: ctx, Store: dbStore},
+		bot.Add{Store: dbStore, Loader: loader},
+		bot.Remove{Store: dbStore},
 	}
 
 	// Timer handler for handle updates

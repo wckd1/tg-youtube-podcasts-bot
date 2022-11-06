@@ -1,33 +1,26 @@
 package db
 
-import "context"
+import (
+	"encoding/json"
 
-const createDownload = `
-INSERT INTO downloads(path, cover_url, title, description)
-VALUES(?,?,?,?)
-RETURNING *
-`
+	bolt "go.etcd.io/bbolt"
+)
 
-type CreateDownloadParams struct {
-	Path        string
-	CoverURL    string
-	Title       string
-	Description string
-}
+func (q *Queries) CreateDownload(d *Download) error {
+    return q.db.Update(func(tx *bolt.Tx) error {
+        b, err := tx.CreateBucketIfNotExists([]byte("downloads"))
+        if err != nil {
+            return err
+        }
 
-func (q *Queries) CreateDownload(ctx context.Context, arg CreateDownloadParams) (Download, error) {
-	var d Download
-	stmt, err := q.db.PrepareContext(ctx, createDownload)
-	if err != nil {
-		return d, err
-	}
-	row := stmt.QueryRowContext(ctx, arg.Path, arg.CoverURL, arg.Title, arg.Description)
-	err = row.Scan(
-		&d.ID,
-		&d.Path,
-		&d.CoverURL,
-		&d.Title,
-		&d.Description,
-	)
-	return d, err
+        id, _ := b.NextSequence()
+        d.ID = int(id) 
+
+        buf, err := json.Marshal(d)
+        if err != nil {
+            return err
+        }
+
+        return b.Put(itob(d.ID), buf)
+	})
 }

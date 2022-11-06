@@ -31,8 +31,8 @@ func (a Add) OnMessage(msg Message) Response {
 		}
 	}
 	// If requested single video - just load it
-	if params.SourceType == db.Video {
-		a.Loader.Download(params.SourcePath)
+	if sub.SourceType == db.Video {
+		go a.Loader.Download(sub.SourcePath)
 		return Response{
 			Text: "Single video started loading",
 			Send: true,
@@ -83,7 +83,6 @@ func parseSubscription(arguments string) (sub db.Subscription, err error) {
 		err = fmt.Errorf("only youtube links are supported")
 		return
 	}
-	sub.SourcePath = furl
 
 	// Check link type
 	path := strings.Split(purl.Path, "/")[1]
@@ -91,13 +90,15 @@ func parseSubscription(arguments string) (sub db.Subscription, err error) {
 	// Check if passed video link
 	case "watch":
 		// Check if video is in playlist
-		if listID, ok := purl.Query()["list"]; ok {
+		if _, ok := purl.Query()["list"]; ok {
 			err = fmt.Errorf("playlist subscription is not implemented yet")
 			// sub.ID = listID[0]
 			// sub.SourceType = db.Playlist
+			// sub.SourcePath = listID[0]
 		} else if videoID, ok := purl.Query()["v"]; ok{
 			sub.ID = videoID[0]
 			sub.SourceType = db.Video
+			sub.SourcePath = videoID[0]
 		} else {
 			err = fmt.Errorf("unrecognized link type")
 		}
@@ -110,8 +111,9 @@ func parseSubscription(arguments string) (sub db.Subscription, err error) {
 		// title := strings.ReplaceAll(arguments, furl, "")
 		// sub.Title = strings.TrimSpace(title)
 
-		// key_prefix := strings.Split(purl.Path, "/")[2]
-		// sub.ID = strings.Join([]string{key_prefix, sub.Title}, "_") // TODO: check
+		// channelID := strings.Split(purl.Path, "/")[2]
+		// sub.ID = strings.Join([]string{channelID, sub.Title}, "_")
+		// sub.SourcePath = channelID
 	// Other links are unsupported
 	default:
 		err = fmt.Errorf("unrecognized link type")
