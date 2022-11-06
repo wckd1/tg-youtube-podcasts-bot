@@ -6,7 +6,6 @@ import (
 	"log"
 	"sync"
 	"wckd1/tg-youtube-podcasts-bot/bot"
-	"wckd1/tg-youtube-podcasts-bot/db"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -86,16 +85,6 @@ func (l *Telegram) SubmitText(ctx context.Context, text string) {
 	case <-ctx.Done():
 		return
 	case l.msgs.ch <- bot.Response{Text: text, Send: true}:
-	}
-}
-
-func (l *Telegram) SubmitDowload(ctx context.Context, download db.Download) {
-	l.msgs.once.Do(func() { l.msgs.ch = make(chan bot.Response, 100) })
-
-	select {
-	case <-ctx.Done():
-		return
-	case l.msgs.ch <- bot.Response{Text: download.Path, Send: true}:
 	}
 }
 

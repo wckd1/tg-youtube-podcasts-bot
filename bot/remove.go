@@ -6,7 +6,7 @@ import (
 )
 
 type Remove struct {
-	Store   db.Store
+	Store db.Store
 }
 
 // OnMessage return deleted subscription status

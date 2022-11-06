@@ -44,7 +44,7 @@ func main() {
 		dbConn.Close()
 		cancel()
 	}()
-	
+
 	// Telegram listener for handle commands
 	tgListener := handlers.Telegram{
 		BotAPI: tgAPI,
@@ -52,7 +52,13 @@ func main() {
 	}
 
 	// Config loader
-	loader := loader.NewLoader(ctx, dbStore, &tgListener)
+	loader := loader.NewLoader(
+		ctx,
+		tgAPI,
+		config.ChatID,
+		dbStore,
+		&tgListener,
+	)
 
 	// Config available commands
 	tgListener.Commands = bot.Commands{

@@ -8,12 +8,12 @@ import (
 	db "wckd1/tg-youtube-podcasts-bot/db"
 	"wckd1/tg-youtube-podcasts-bot/loader"
 
-	"mvdan.cc/xurls"
+	"mvdan.cc/xurls/v2"
 )
 
 type Add struct {
-	Store   db.Store
-	Loader  loader.Interface
+	Store  db.Store
+	Loader loader.Interface
 }
 
 // OnMessage return new subscription status
@@ -21,7 +21,7 @@ func (a Add) OnMessage(msg Message) Response {
 	if !contains(a.ReactOn(), msg.Command) {
 		return Response{}
 	}
-	
+
 	sub, err := parseSubscription(msg.Arguments)
 	if err != nil {
 		log.Printf("[ERROR] failed to parse arguments, %v", err)
@@ -34,11 +34,11 @@ func (a Add) OnMessage(msg Message) Response {
 	if sub.SourceType == db.Video {
 		go a.Loader.Download(sub.SourcePath)
 		return Response{
-			Text: "Single video started loading",
+			Text: "Audio will be available shortly",
 			Send: true,
 		}
 	}
-	
+
 	err = a.Store.CreateSubsctiption(&sub)
 	if err != nil {
 		log.Printf("[ERROR] failed to create subscription, %v", err)
@@ -71,7 +71,7 @@ func parseSubscription(arguments string) (sub db.Subscription, err error) {
 	sub = db.Subscription{}
 
 	// Check if arguments contains link
-	furl := xurls.Relaxed.FindString(arguments)
+	furl := xurls.Relaxed().FindString(arguments)
 	if len(furl) == 0 {
 		err = fmt.Errorf("no source url provided")
 		return
@@ -95,7 +95,7 @@ func parseSubscription(arguments string) (sub db.Subscription, err error) {
 			// sub.ID = listID[0]
 			// sub.SourceType = db.Playlist
 			// sub.SourcePath = listID[0]
-		} else if videoID, ok := purl.Query()["v"]; ok{
+		} else if videoID, ok := purl.Query()["v"]; ok {
 			sub.ID = videoID[0]
 			sub.SourceType = db.Video
 			sub.SourcePath = videoID[0]

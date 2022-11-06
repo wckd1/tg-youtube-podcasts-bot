@@ -9,24 +9,32 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"wckd1/tg-youtube-podcasts-bot/db"
+
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"mvdan.cc/xurls/v2"
 )
 
 type YTLoader struct {
 	Context   context.Context
+	BotAPI    *tgbotapi.BotAPI
+	chatID    int64
 	Store     db.Store
 	Submitter Submitter
 }
 
 const (
-	ytdlpCmd  = "yt-dlp -x --audio-format=mp3 --audio-quality=0 -f m4a/bestaudio --write-info-json --no-progress -o %s.tmp https://www.youtube.com/watch?v=%s"
+	ytdlpCmd = "yt-dlp -x --audio-format=mp3 --audio-quality=0 -f m4a/bestaudio --write-info-json --no-progress -o %s.tmp https://www.youtube.com/watch?v=%s"
 	destPath = "./storage/downloads/"
 	infoExt  = ".tmp.info.json"
 )
 
-func NewLoader(ctx context.Context, db db.Store, submitter Submitter) Interface {
+func NewLoader(ctx context.Context, botAPI *tgbotapi.BotAPI, chatID int64, db db.Store, submitter Submitter) Interface {
 	return &YTLoader{
 		Context:   ctx,
+		BotAPI:    botAPI,
+		chatID:    chatID,
 		Store:     db,
 		Submitter: submitter,
 	}
@@ -65,21 +73,20 @@ func (l YTLoader) Download(id string) {
 	}
 	json.Unmarshal(byteValue, &data)
 
-	// TODO: Upload file to Telegram
+	// Sanitize description
+	desc := data.Description
+	furls := xurls.Relaxed().FindAllString(desc, -1)
+	for _, u := range furls {
+		desc = strings.ReplaceAll(desc, u, "")
+	}
+	data.Description = desc
 
-	// Save uploaded file's info
 	download := db.Download{
 		Path:        filepath.Join(destPath, id+".mp3"),
 		CoverURL:    data.ImageURL,
 		Title:       data.Title,
 		Description: data.Description,
 	}
-	err = l.Store.CreateDownload(&download)
-	if err != nil {
-		log.Printf("[ERROR] failed to download, %v", err)
-		l.Submitter.SubmitText(l.Context, "failed to download")
-		return
-	}
 
-	l.Submitter.SubmitDowload(l.Context, download)
+	l.Upload(download)
 }
