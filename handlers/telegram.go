@@ -11,7 +11,7 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-type TelegramListener struct {
+type Telegram struct {
 	BotAPI   *tgbotapi.BotAPI
 	Commands bot.Command
 	ChatID   int64
@@ -23,7 +23,7 @@ type TelegramListener struct {
 }
 
 // Process events
-func (l *TelegramListener) Start(ctx context.Context) error {
+func (l *Telegram) Start(ctx context.Context) error {
 	l.msgs.once.Do(func() {
 		l.msgs.ch = make(chan bot.Response, 100)
 	})
@@ -64,7 +64,7 @@ func (l *TelegramListener) Start(ctx context.Context) error {
 	}
 }
 
-func (l *TelegramListener) sendBotResponse(resp bot.Response, chatID int64) error {
+func (l *Telegram) sendBotResponse(resp bot.Response, chatID int64) error {
 	if !resp.Send {
 		return nil
 	}
@@ -79,7 +79,7 @@ func (l *TelegramListener) sendBotResponse(resp bot.Response, chatID int64) erro
 	return nil
 }
 
-func (l *TelegramListener) SubmitText(ctx context.Context, text string) {
+func (l *Telegram) SubmitText(ctx context.Context, text string) {
 	l.msgs.once.Do(func() { l.msgs.ch = make(chan bot.Response, 100) })
 
 	select {
@@ -89,7 +89,7 @@ func (l *TelegramListener) SubmitText(ctx context.Context, text string) {
 	}
 }
 
-func (l *TelegramListener) SubmitDowload(ctx context.Context, download db.Download) {
+func (l *Telegram) SubmitDowload(ctx context.Context, download db.Download) {
 	l.msgs.once.Do(func() { l.msgs.ch = make(chan bot.Response, 100) })
 
 	select {
@@ -99,7 +99,7 @@ func (l *TelegramListener) SubmitDowload(ctx context.Context, download db.Downlo
 	}
 }
 
-func (l *TelegramListener) transform(msg *tgbotapi.Message) *bot.Message {
+func (l *Telegram) transform(msg *tgbotapi.Message) *bot.Message {
 	message := bot.Message{
 		ID:        msg.MessageID,
 		Command:   msg.Command(),

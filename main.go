@@ -46,7 +46,7 @@ func main() {
 	}()
 	
 	// Telegram listener for handle commands
-	tgListener := handlers.TelegramListener{
+	tgListener := handlers.Telegram{
 		BotAPI: tgAPI,
 		ChatID: config.ChatID,
 	}
@@ -61,7 +61,7 @@ func main() {
 	}
 
 	// Timer handler for handle updates
-	updateChecker := handlers.UpdateChecker{
+	Updater := handlers.Updater{
 		Delay:     config.UpdateInterval,
 		Submitter: &tgListener,
 		Loader:    loader,
@@ -69,7 +69,7 @@ func main() {
 
 	// Start handlers
 	go func() {
-		if err := updateChecker.Start(ctx); err != nil {
+		if err := Updater.Start(ctx); err != nil {
 			log.Printf("[INFO] update checker stopped, %v", err)
 		}
 	}()

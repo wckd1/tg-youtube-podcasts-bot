@@ -6,8 +6,8 @@ import (
 	"wckd1/tg-youtube-podcasts-bot/loader"
 )
 
-// UpdateChecker is a task runner that check for updates with delay
-type UpdateChecker struct {
+// Updater is a task runner that check for updates with delay
+type Updater struct {
 	Delay     time.Duration
 	Submitter Submitter
 	Loader    loader.Interface
@@ -18,7 +18,7 @@ type Submitter interface {
 	SubmitText(ctx context.Context, text string)
 }
 
-func (uc UpdateChecker) Start(ctx context.Context) error {
+func (uc Updater) Start(ctx context.Context) error {
 	ticker := time.NewTicker(uc.Delay)
 	defer ticker.Stop()
 
