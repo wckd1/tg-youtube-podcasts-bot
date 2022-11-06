@@ -18,7 +18,7 @@ func (q *Queries) CreateSubsctiption(sub *Subscription) error {
             return err
         }
 
-        return b.Put([]byte(sub.ID), buf)
+        return b.Put(subID(sub), buf)
 	})
 }
 
@@ -29,6 +29,6 @@ func (q *Queries) DeleteSubsctiption(sub *Subscription) error {
             return err
         }
 
-		return b.Delete([]byte(sub.ID))
+		return b.Delete(subID(sub))
 	})
 }

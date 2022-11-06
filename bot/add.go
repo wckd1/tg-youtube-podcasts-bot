@@ -31,8 +31,8 @@ func (a Add) OnMessage(msg Message) Response {
 		}
 	}
 	// If requested single video - just load it
-	if sub.SourceType == db.Video {
-		go a.Loader.Download(sub.SourcePath)
+	if sub.Type == db.Video {
+		go a.Loader.Download(sub.YouTubeID)
 		return Response{
 			Text: "Audio will be available shortly",
 			Send: true,
@@ -92,28 +92,25 @@ func parseSubscription(arguments string) (sub db.Subscription, err error) {
 		// Check if video is in playlist
 		if _, ok := purl.Query()["list"]; ok {
 			err = fmt.Errorf("playlist subscription is not implemented yet")
-			// sub.ID = listID[0]
-			// sub.SourceType = db.Playlist
-			// sub.SourcePath = listID[0]
+			// sub.Type = db.Playlist
+			// sub.YouTubeID = listID[0]
 		} else if videoID, ok := purl.Query()["v"]; ok {
-			sub.ID = videoID[0]
-			sub.SourceType = db.Video
-			sub.SourcePath = videoID[0]
+			sub.Type = db.Video
+			sub.YouTubeID = videoID[0]
 		} else {
 			err = fmt.Errorf("unrecognized link type")
 		}
 	// Check if passed channel link
 	case "c", "channel":
 		err = fmt.Errorf("channel subscription is not implemented yet")
-		// sub.SourceType = db.Channel
+		// sub.Type = db.Channel
 
 		// // Parse title
-		// title := strings.ReplaceAll(arguments, furl, "")
-		// sub.Title = strings.TrimSpace(title)
+		// filter := strings.ReplaceAll(arguments, furl, "")
+		// sub.Filter = strings.TrimSpace(filter)
 
 		// channelID := strings.Split(purl.Path, "/")[2]
-		// sub.ID = strings.Join([]string{channelID, sub.Title}, "_")
-		// sub.SourcePath = channelID
+		// sub.YouTubeID = channelID
 	// Other links are unsupported
 	default:
 		err = fmt.Errorf("unrecognized link type")

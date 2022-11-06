@@ -82,7 +82,7 @@ func (l YTLoader) Download(id string) {
 	data.Description = desc
 
 	download := db.Download{
-		Path:        filepath.Join(destPath, id+".mp3"),
+		URL:         filepath.Join(destPath, id+".mp3"),
 		CoverURL:    data.ImageURL,
 		Title:       data.Title,
 		Description: data.Description,

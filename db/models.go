@@ -9,15 +9,14 @@ const (
 )
 
 type Subscription struct {
-	ID         string
-	SourcePath string
-	SourceType SourceType
-	Title      string
+	YouTubeID 	string
+	Type 		SourceType
+	Filter      string
 }
 
 type Download struct {
 	ID          int
-	Path        string
+	URL      string
 	CoverURL    string
 	Title       string
 	Description string
