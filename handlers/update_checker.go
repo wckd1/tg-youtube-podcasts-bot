@@ -13,7 +13,7 @@ type UpdateChecker struct {
 	Loader    loader.Interface
 }
 
-// Submitter defines interface to submit (usually asynchronously) to the chat
+// Submitter defines interface to submit to the chat
 type Submitter interface {
 	SubmitText(ctx context.Context, text string)
 }

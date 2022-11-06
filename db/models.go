@@ -17,7 +17,7 @@ type Subscription struct {
 
 type Download struct {
 	ID          int64
-	AudioURL    string
+	Path        string
 	CoverURL    string
 	Title       string
 	Description string

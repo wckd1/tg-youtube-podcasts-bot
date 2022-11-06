@@ -95,7 +95,7 @@ func (l *TelegramListener) SubmitDowload(ctx context.Context, download db.Downlo
 	select {
 	case <-ctx.Done():
 		return
-	case l.msgs.ch <- bot.Response{Text: download.AudioURL, Send: true}:
+	case l.msgs.ch <- bot.Response{Text: download.Path, Send: true}:
 	}
 }
 

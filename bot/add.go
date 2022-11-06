@@ -92,8 +92,9 @@ func parseSubscription(arguments string) (sub db.Subscription, err error) {
 	case "watch":
 		// Check if video is in playlist
 		if listID, ok := purl.Query()["list"]; ok {
-			sub.ID = listID[0]
-			sub.SourceType = db.Playlist
+			err = fmt.Errorf("playlist subscription is not implemented yet")
+			// sub.ID = listID[0]
+			// sub.SourceType = db.Playlist
 		} else if videoID, ok := purl.Query()["v"]; ok{
 			sub.ID = videoID[0]
 			sub.SourceType = db.Video
@@ -102,14 +103,15 @@ func parseSubscription(arguments string) (sub db.Subscription, err error) {
 		}
 	// Check if passed channel link
 	case "c", "channel":
-		sub.SourceType = db.Channel
+		err = fmt.Errorf("channel subscription is not implemented yet")
+		// sub.SourceType = db.Channel
 
-		// Parse title
-		title := strings.ReplaceAll(arguments, furl, "")
-		sub.Title = strings.TrimSpace(title)
+		// // Parse title
+		// title := strings.ReplaceAll(arguments, furl, "")
+		// sub.Title = strings.TrimSpace(title)
 
-		key_prefix := strings.Split(purl.Path, "/")[2]
-		sub.ID = strings.Join([]string{key_prefix, sub.Title}, "_") // TODO: check
+		// key_prefix := strings.Split(purl.Path, "/")[2]
+		// sub.ID = strings.Join([]string{key_prefix, sub.Title}, "_") // TODO: check
 	// Other links are unsupported
 	default:
 		err = fmt.Errorf("unrecognized link type")
