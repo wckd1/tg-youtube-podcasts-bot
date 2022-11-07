@@ -75,6 +75,9 @@ func main() {
 		ChatID:   config.ChatID,
 	}
 
+	// Server for API
+	server := handlers.Server{}
+
 	// NOTE: Not required for now
 	// Timer handler for handle updates
 	// updater := handlers.Updater{
@@ -84,12 +87,17 @@ func main() {
 	// }
 
 	// Start handlers
+
 	// go func() {
 	// 	if err := updater.Start(ctx); err != nil {
 	// 		log.Printf("[INFO] update checker stopped, %v", err)
 	// 	}
 	// }()
-	if err := tgListener.Start(ctx); err != nil {
+
+	go server.Run(ctx, 8080)
+
+	err = tgListener.Start(ctx)
+	if err != nil {
 		log.Printf("[INFO] telegram listener stopped, %v", err)
 	}
 }
