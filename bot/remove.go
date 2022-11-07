@@ -1,12 +1,11 @@
 package bot
 
 import (
-	"log"
-	db "wckd1/tg-youtube-podcasts-bot/db"
+	"wckd1/tg-youtube-podcasts-bot/feed"
 )
 
 type Remove struct {
-	Store db.Store
+	FeedService feed.FeedService
 }
 
 // OnMessage return deleted subscription status
@@ -15,19 +14,9 @@ func (a Remove) OnMessage(msg Message) Response {
 		return Response{}
 	}
 
-	sub, err := parseSubscription(msg.Arguments)
-	if err != nil {
-		log.Printf("[ERROR] failed to parse arguments, %v", err)
+	if err := a.FeedService.Delete(msg.Arguments); err != nil {
 		return Response{
-			Text: err.Error(),
-			Send: true,
-		}
-	}
-	err = a.Store.DeleteSubsctiption(&sub)
-	if err != nil {
-		log.Printf("[ERROR] failed to remove subscription, %v", err)
-		return Response{
-			Text: "Failed to remove subscription",
+			Text: "Failed to add subscription. See logs for more info",
 			Send: true,
 		}
 	}

@@ -7,8 +7,9 @@ import (
 	"os/signal"
 	"wckd1/tg-youtube-podcasts-bot/bot"
 	db "wckd1/tg-youtube-podcasts-bot/db"
-	"wckd1/tg-youtube-podcasts-bot/handlers"
+	"wckd1/tg-youtube-podcasts-bot/feed"
 	"wckd1/tg-youtube-podcasts-bot/file_manager"
+	"wckd1/tg-youtube-podcasts-bot/handlers"
 	"wckd1/tg-youtube-podcasts-bot/util"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -48,27 +49,34 @@ func main() {
 	// File manager
 	fileManager := file_manager.FileManager{
 		Downloader: &file_manager.YTDLPLoader{},
-		Uploader:  &file_manager.TelegramUploader{
+		Uploader: &file_manager.TelegramUploader{
 			BotAPI: tgAPI,
 			ChatID: config.ChatID,
 		},
 	}
 
+	// Feed service
+	feedSrv := feed.FeedService{
+		Context:     ctx,
+		Store:       dbStore,
+		FileManager: fileManager,
+	}
+
 	// Config available commands
 	commands := bot.Commands{
-		bot.Add{Context: ctx, Store: dbStore, Loader: fileManager},
-		bot.Remove{Store: dbStore},
+		bot.Add{FeedService: feedSrv},
+		bot.Remove{FeedService: feedSrv},
 	}
 
 	// Telegram listener for handle commands
 	tgListener := handlers.Telegram{
-		BotAPI: tgAPI,
+		BotAPI:   tgAPI,
 		Commands: commands,
-		ChatID: config.ChatID,
+		ChatID:   config.ChatID,
 	}
 
 	// NOTE: Not required for now
-	// Timer handler for handle updates	
+	// Timer handler for handle updates
 	// updater := handlers.Updater{
 	// 	Delay:     config.UpdateInterval,
 	// 	Submitter: &tgListener,
