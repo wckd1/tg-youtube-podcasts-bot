@@ -8,7 +8,7 @@ import (
 	"wckd1/tg-youtube-podcasts-bot/bot"
 	db "wckd1/tg-youtube-podcasts-bot/db"
 	"wckd1/tg-youtube-podcasts-bot/handlers"
-	"wckd1/tg-youtube-podcasts-bot/loader"
+	"wckd1/tg-youtube-podcasts-bot/file_manager"
 	"wckd1/tg-youtube-podcasts-bot/util"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -45,40 +45,42 @@ func main() {
 		cancel()
 	}()
 
-	// Telegram listener for handle commands
-	tgListener := handlers.Telegram{
-		BotAPI: tgAPI,
-		ChatID: config.ChatID,
+	// File manager
+	fileManager := file_manager.FileManager{
+		Downloader: &file_manager.YTDLPLoader{},
+		Uploader:  &file_manager.TelegramUploader{
+			BotAPI: tgAPI,
+			ChatID: config.ChatID,
+		},
 	}
 
-	// Config loader
-	loader := loader.NewLoader(
-		ctx,
-		tgAPI,
-		config.ChatID,
-		dbStore,
-		&tgListener,
-	)
-
 	// Config available commands
-	tgListener.Commands = bot.Commands{
-		bot.Add{Store: dbStore, Loader: loader},
+	commands := bot.Commands{
+		bot.Add{Context: ctx, Store: dbStore, Loader: fileManager},
 		bot.Remove{Store: dbStore},
 	}
 
-	// Timer handler for handle updates
-	Updater := handlers.Updater{
-		Delay:     config.UpdateInterval,
-		Submitter: &tgListener,
-		Loader:    loader,
+	// Telegram listener for handle commands
+	tgListener := handlers.Telegram{
+		BotAPI: tgAPI,
+		Commands: commands,
+		ChatID: config.ChatID,
 	}
 
+	// NOTE: Not required for now
+	// Timer handler for handle updates	
+	// updater := handlers.Updater{
+	// 	Delay:     config.UpdateInterval,
+	// 	Submitter: &tgListener,
+	// 	Loader:    fileManager,
+	// }
+
 	// Start handlers
-	go func() {
-		if err := Updater.Start(ctx); err != nil {
-			log.Printf("[INFO] update checker stopped, %v", err)
-		}
-	}()
+	// go func() {
+	// 	if err := updater.Start(ctx); err != nil {
+	// 		log.Printf("[INFO] update checker stopped, %v", err)
+	// 	}
+	// }()
 	if err := tgListener.Start(ctx); err != nil {
 		log.Printf("[INFO] telegram listener stopped, %v", err)
 	}

@@ -1,19 +1,21 @@
 package bot
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/url"
 	"strings"
 	db "wckd1/tg-youtube-podcasts-bot/db"
-	"wckd1/tg-youtube-podcasts-bot/loader"
+	"wckd1/tg-youtube-podcasts-bot/file_manager"
 
 	"mvdan.cc/xurls/v2"
 )
 
 type Add struct {
+	Context context.Context
 	Store  db.Store
-	Loader loader.Interface
+	Loader file_manager.FileManager
 }
 
 // OnMessage return new subscription status
@@ -32,7 +34,8 @@ func (a Add) OnMessage(msg Message) Response {
 	}
 	// If requested single video - just load it
 	if sub.Type == db.Video {
-		go a.Loader.Download(sub.YouTubeID)
+		// TODO: Move to Subscriptions Service
+		go a.Loader.Get(a.Context, sub.YouTubeID)
 		return Response{
 			Text: "Audio will be available shortly",
 			Send: true,

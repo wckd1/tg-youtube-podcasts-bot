@@ -3,14 +3,12 @@ package handlers
 import (
 	"context"
 	"time"
-	"wckd1/tg-youtube-podcasts-bot/loader"
 )
 
 // Updater is a task runner that check for updates with delay
 type Updater struct {
 	Delay     time.Duration
 	Submitter Submitter
-	Loader    loader.Interface
 }
 
 // Submitter defines interface to submit to the chat
