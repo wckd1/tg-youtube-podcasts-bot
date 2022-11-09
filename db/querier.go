@@ -8,6 +8,7 @@ type Querier interface {
 	CreateSubsctiption(sub *Subscription) (string, error)
 	DeleteSubsctiption(sub *Subscription) error
 	CreateEpisode(e *Episode) error
+	GetEpisodes(limit int) ([]Episode, error)
 	ChangeUpdate(u *Update) error
 }
 

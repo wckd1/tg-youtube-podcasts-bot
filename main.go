@@ -76,7 +76,9 @@ func main() {
 	}
 
 	// Server for API
-	server := handlers.Server{}
+	server := handlers.Server{
+		FeedService: feedSrv,
+	}
 
 	// NOTE: Not required for now
 	// Timer handler for handle updates
@@ -94,7 +96,7 @@ func main() {
 	// 	}
 	// }()
 
-	go server.Run(ctx, 8080)
+	go server.Run(ctx, config.RssKey, 8080)
 
 	err = tgListener.Start(ctx)
 	if err != nil {

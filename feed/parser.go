@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 	"wckd1/tg-youtube-podcasts-bot/db"
 
 	"mvdan.cc/xurls/v2"
@@ -61,4 +62,9 @@ func (fs FeedService) parseSubscription(arguments string) (sub db.Subscription, 
 	}
 
 	return
+}
+
+func (fs FeedService) parseDate(input string) string {
+	d, _ := time.Parse("20060102", input)
+	return d.Format("Mon, 2 Jan 2006 15:04:05 GMT")
 }

@@ -56,6 +56,15 @@ func (fs FeedService) Delete(arg string) error {
 	return nil
 }
 
+// Get list of available episodes
+func (fs FeedService) GetEpisodes() (el []db.Episode, err error) {
+	el, err = fs.Store.GetEpisodes(20)
+	if err != nil {
+		log.Printf("[ERROR] failed to get episode, %v", err)
+	}
+	return
+}
+
 // Handle single video request
 func (fs FeedService) addVideo(sub db.Subscription) error {
 	dl, err := fs.FileManager.Get(fs.Context, sub.YouTubeID)
@@ -64,10 +73,18 @@ func (fs FeedService) addVideo(sub db.Subscription) error {
 	}
 
 	ep := db.Episode{
-		URL:         dl.URL,
-		CoverURL:    dl.CoverURL,
-		Title:       dl.Title,
-		Description: dl.Description,
+		Enclosure: db.Enclosure{
+			URL:    dl.URL,
+			Length: dl.Info.Length,
+			Type:   "audio/mpeg",
+		},
+		Link:        dl.Info.Link,
+		Image:       dl.Info.ImageURL,
+		Title:       dl.Info.Title,
+		Description: "<![CDATA[" + dl.Info.Description + "]]>",
+		Author:      dl.Info.Author,
+		Duration:    dl.Info.Duration,
+		PubDate:     fs.parseDate(dl.Info.Date),
 	}
 	if err = fs.Store.CreateEpisode(&ep); err != nil {
 		log.Printf("[ERROR] failed to create episode, %v", err)

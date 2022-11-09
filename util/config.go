@@ -11,6 +11,7 @@ type Config struct {
 	ChatID         int64         `mapstructure:"CHAT_ID"`
 	DebugMode      bool          `mapstructure:"DEBUG_MODE"`
 	UpdateInterval time.Duration `mapstructure:"UPDATE_INTERVAL"`
+	RssKey         string        `mapstructure:"RSS_KEY"`
 }
 
 func LoadConfig() (c Config, err error) {

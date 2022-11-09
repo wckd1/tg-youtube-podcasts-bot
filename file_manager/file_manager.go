@@ -10,16 +10,19 @@ type localFile struct {
 }
 
 type fileInfo struct {
+	Link        string `json:"webpage_url"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	ImageURL    string `json:"thumbnail"`
+	Author      string `json:"uploader"`
+	Length      int    `json:"filesize"`
+	Duration    int    `json:"duration"`
+	Date        string `json:"upload_date"`
 }
 
 type Download struct {
-	URL         string
-	Title       string
-	Description string
-	CoverURL    string
+	URL  string
+	Info fileInfo
 }
 
 // Downloader defines interface to download file to local fs
@@ -45,9 +48,7 @@ func (fm FileManager) Get(ctx context.Context, id string) (download Download, er
 		return
 	}
 
-	download.Title = file.info.Title
-	download.Description = file.info.Description
-	download.CoverURL = file.info.ImageURL
+	download.Info = file.info
 
 	url, err := fm.Uploader.Upload(ctx, file)
 	if err != nil {
