@@ -2,32 +2,74 @@ package handlers
 
 import (
 	"context"
+	"fmt"
+	"log"
+	"os"
+	"os/exec"
 	"time"
+	"wckd1/tg-youtube-podcasts-bot/feed"
 )
 
-// Updater is a task runner that check for updates with delay
+const (
+	ytdlpCmd = "yt-dlp --dump-json %s"
+)
+
+// Updater is a task runner that check for updates with given delay
 type Updater struct {
-	Delay     time.Duration
-	Submitter Submitter
+	Delay       time.Duration
+	FeedService feed.FeedService
 }
 
-// Submitter defines interface to submit to the chat
-type Submitter interface {
-	SubmitText(ctx context.Context, text string)
-}
+func (u Updater) Start(ctx context.Context) {
+	log.Printf("[INFO] starting updater with %v interval", u.Delay)
 
-func (uc Updater) Start(ctx context.Context) error {
-	ticker := time.NewTicker(uc.Delay)
+	ticker := time.NewTicker(u.Delay)
 	defer ticker.Stop()
 
 	for {
 		select {
 
 		case <-ticker.C:
-			uc.Submitter.SubmitText(ctx, "Checked for update")
+			u.checkForUpdates(ctx)
 
 		case <-ctx.Done():
-			return ctx.Err()
+			log.Printf("[INFO] update checker stopped, %v", ctx.Err())
+			return
 		}
 	}
 }
+
+func (u Updater) checkForUpdates(ctx context.Context) {
+	log.Printf("[INFO] Check for updates")
+
+	sl, err := u.FeedService.GetPendingSubsctiptions()
+	if err != nil {
+		log.Printf("[WARN] updates check skipped, %w", err)
+	}
+
+	testSub := sl[0]
+
+	cmdStr := fmt.Sprintf(ytdlpCmd, testSub.URL)
+	cmd := exec.CommandContext(ctx, "sh", "-c", cmdStr)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+
+	log.Printf("[DEBUG] executing command: %s", cmd.String())
+	if err = cmd.Run(); err != nil {
+		log.Printf("[ERROR] failed to execute command: %v", err)
+		return
+	}
+}
+
+// All filters, separate json files
+// yt-dlp --dateafter 20200520 --match-filters title~='MOUNTAIN BIKE' https://www.youtube.com/playlist\?list\=PLWx61XgoQmqdkfWC58_sYKAZvdQt9eBxQ --write-info-json --skip-download --no-write-playlist-metafiles
+
+// For filter by title
+// --match-filters title~='{title}'
+
+// For filter by date
+// --dateafter "YYYYMMDD"
+
+// Get videos info
+// -j, --dump-json
+// -J, --dump-single-json

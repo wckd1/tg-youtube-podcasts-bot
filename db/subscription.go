@@ -2,33 +2,21 @@ package db
 
 import (
 	"encoding/json"
-	"strings"
+	"fmt"
+	"log"
 
 	bolt "go.etcd.io/bbolt"
 )
 
-type SourceType string
-
-const (
-	Channel  SourceType = "channel"
-	Playlist SourceType = "playlist"
-	Video    SourceType = "video"
-)
-
 type Subscription struct {
-	YouTubeID string
-	Type      SourceType
-	Filter    string
+	ID      string
+	URL     string
+	IsVideo bool
+	Filter  string
 }
 
-func (s *Subscription) makeID() string {
-	return strings.Join([]string{s.YouTubeID, s.Filter}, "_")
-}
-
-func (q *Queries) CreateSubsctiption(sub *Subscription) (string, error) {
-	var id string
-
-	err := q.db.Update(func(tx *bolt.Tx) error {
+func (q *Queries) CreateSubsctiption(sub *Subscription) error {
+	return q.db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte("subscriptions"))
 		if err != nil {
 			return err
@@ -38,22 +26,38 @@ func (q *Queries) CreateSubsctiption(sub *Subscription) (string, error) {
 		if err != nil {
 			return err
 		}
+		return b.Put([]byte(sub.ID), buf)
+	})
+}
 
-		id = sub.makeID()
-		return b.Put([]byte(id), buf)
+func (q *Queries) GetSubsctiption(id string) (Subscription, error) {
+	result := Subscription{}
+
+	err := q.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("subscriptions"))
+		if b == nil {
+			return fmt.Errorf("no saved subscriptions")
+		}
+
+		v := b.Get([]byte(id))
+		if err := json.Unmarshal(v, &result); err != nil {
+			log.Printf("[WARN] failed to unmarshal, %v", err)
+			return err
+		}
+
+		return nil
 	})
 
-	return id, err
+	return result, err
 }
 
 func (q *Queries) DeleteSubsctiption(sub *Subscription) error {
 	return q.db.Update(func(tx *bolt.Tx) error {
-		b, err := tx.CreateBucketIfNotExists([]byte("subscriptions"))
-		if err != nil {
-			return err
+		b := tx.Bucket([]byte("subscriptions"))
+		if b == nil {
+			return fmt.Errorf("no saved subscriptions")
 		}
 
-		id := sub.makeID()
-		return b.Delete([]byte(id))
+		return b.Delete([]byte(sub.ID))
 	})
 }

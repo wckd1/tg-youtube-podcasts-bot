@@ -11,22 +11,24 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/google/uuid"
 	"mvdan.cc/xurls/v2"
 )
 
 type YTDLPLoader struct{}
 
 const (
-	ytdlpCmd = "yt-dlp -x --audio-format=mp3 --audio-quality=0 -f m4a/bestaudio --write-info-json --no-progress -o %s.tmp https://www.youtube.com/watch?v=%s"
+	ytdlpCmd = "yt-dlp -x --audio-format=mp3 --audio-quality=0 -f m4a/bestaudio --write-info-json --no-progress -o %s.tmp %s"
 	destPath = "./storage/downloads/"
 	infoExt  = ".tmp.info.json"
 )
 
-func (l YTDLPLoader) Download(ctx context.Context, id string) (file localFile, err error) {
+func (l YTDLPLoader) Download(ctx context.Context, url string) (file localFile, err error) {
 	file = localFile{}
+	id := uuid.New().String()
 
 	// Load audio with metadata
-	cmdStr := fmt.Sprintf(ytdlpCmd, id, id)
+	cmdStr := fmt.Sprintf(ytdlpCmd, id, url)
 	cmd := exec.CommandContext(ctx, "sh", "-c", cmdStr)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout

@@ -80,26 +80,17 @@ func main() {
 		FeedService: feedSrv,
 	}
 
-	// NOTE: Not required for now
 	// Timer handler for handle updates
-	// updater := handlers.Updater{
-	// 	Delay:     config.UpdateInterval,
-	// 	Submitter: &tgListener,
-	// 	Loader:    fileManager,
-	// }
+	updater := handlers.Updater{
+		Delay:       config.UpdateInterval,
+		FeedService: feedSrv,
+	}
 
 	// Start handlers
-
-	// go func() {
-	// 	if err := updater.Start(ctx); err != nil {
-	// 		log.Printf("[INFO] update checker stopped, %v", err)
-	// 	}
-	// }()
-
+	go updater.Start(ctx)
 	go server.Run(ctx, config.RssKey, 8080)
 
-	err = tgListener.Start(ctx)
-	if err != nil {
+	if err = tgListener.Start(ctx); err != nil {
 		log.Printf("[INFO] telegram listener stopped, %v", err)
 	}
 }

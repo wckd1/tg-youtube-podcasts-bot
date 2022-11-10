@@ -27,7 +27,9 @@ import (
 
 // Parse params to detect subscription details
 func (fs FeedService) parseSubscription(arguments string) (sub db.Subscription, err error) {
-	sub = db.Subscription{}
+	sub = db.Subscription{
+		IsVideo: false,
+	}
 
 	// Check if arguments contains link
 	furl := xurls.Relaxed().FindString(arguments)
@@ -49,25 +51,27 @@ func (fs FeedService) parseSubscription(arguments string) (sub db.Subscription, 
 	// Check for valid playlist link
 	listID, ok := purl.Query()["list"]
 	if ok && (path == "watch" || path == "playlist") {
-		sub.Type = db.Playlist
-		sub.YouTubeID = listID[0]
+		sub.ID = listID[0]
+		sub.URL = "https://www.youtube.com/playlist?list=" + listID[0]
 		return
 	}
 
 	// Check for valid video link
-	videoID, ok := purl.Query()["v"]
+	_, ok = purl.Query()["v"]
 	if ok && path == "watch" {
-		sub.Type = db.Video
-		sub.YouTubeID = videoID[0]
+		sub.IsVideo = true
+		sub.URL = purl.String()
 	}
 
 	// Check for valid channel link
 	if path == "c" || path == "channel" {
-		sub.Type = db.Channel
-		sub.YouTubeID = strings.Split(purl.Path, "/")[2]
+		sub.URL = purl.String()
 
 		// Parse optional filter
 		sub.Filter = strings.ReplaceAll(arguments, furl, "")
+
+		chanID := strings.Split(purl.Path, "/")[2]
+		sub.ID = strings.Join([]string{chanID, sub.Filter}, "_")
 	}
 
 	// No supported links found

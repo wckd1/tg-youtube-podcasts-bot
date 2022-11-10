@@ -22,15 +22,14 @@ func (fs FeedService) Add(arg string) error {
 		return err
 	}
 
-	switch sub.Type {
-	// If requested single video - just load it
-	case db.Video:
+	if sub.IsVideo {
+		// If requested single video - just load it
 		if err = fs.addVideo(sub); err != nil {
 			log.Printf("[ERROR] failed to create subscription, %v", err)
 			return err
 		}
-	// Or add to subscriptions for later updates check
-	default:
+	} else {
+		// Or add to subscriptions for later updates check
 		if err = fs.addSubsctiption(sub); err != nil {
 			log.Printf("[ERROR] failed to create subscription, %v", err)
 			return err
@@ -48,8 +47,13 @@ func (fs FeedService) Delete(arg string) error {
 		return err
 	}
 
-	if err = fs.Store.DeleteSubsctiption(&sub); err != nil {
+	if err := fs.Store.DeleteSubsctiption(&sub); err != nil {
 		log.Printf("[ERROR] failed to remove subscription, %v", err)
+		return err
+	}
+
+	if err = fs.Store.DeleteUpdate(sub.ID); err != nil {
+		log.Printf("[ERROR] failed to remove update for %s, %v", sub.ID, err)
 		return err
 	}
 
@@ -57,17 +61,46 @@ func (fs FeedService) Delete(arg string) error {
 }
 
 // Get list of available episodes
-func (fs FeedService) GetEpisodes() (el []db.Episode, err error) {
-	el, err = fs.Store.GetEpisodes(20)
+func (fs FeedService) GetEpisodes() (eps []db.Episode, err error) {
+	eps, err = fs.Store.GetEpisodes(20)
 	if err != nil {
 		log.Printf("[ERROR] failed to get episode, %v", err)
 	}
 	return
 }
 
+// Get list of pending subscriptions
+func (fs FeedService) GetPendingSubsctiptions() (subs []db.Subscription, err error) {
+	// Get saved updates
+	upds, err := fs.Store.GetUpdates()
+	if err != nil {
+		log.Printf("[ERROR] failed to get updates, %v", err)
+		return
+	}
+
+	now := time.Now()
+
+	for _, upd := range upds {
+		// Calculate next update time for subscription
+		updt := upd.LastUpdated.Add(upd.UpdateInterval)
+
+		if updt.Before(now) || updt.Equal(now) {
+			// Get subscription if update required
+			sub, err := fs.Store.GetSubsctiption(upd.SubscriptionID)
+			if err != nil {
+				log.Printf("[ERROR] failed to get subscription, %v", err)
+				continue
+			}
+			subs = append(subs, sub)
+		}
+	}
+
+	return
+}
+
 // Handle single video request
 func (fs FeedService) addVideo(sub db.Subscription) error {
-	dl, err := fs.FileManager.Get(fs.Context, sub.YouTubeID)
+	dl, err := fs.FileManager.Get(fs.Context, sub.URL)
 	if err != nil {
 		return err
 	}
@@ -96,15 +129,17 @@ func (fs FeedService) addVideo(sub db.Subscription) error {
 
 // Handle subscription request
 func (fs FeedService) addSubsctiption(sub db.Subscription) error {
-	subID, err := fs.Store.CreateSubsctiption(&sub)
+	err := fs.Store.CreateSubsctiption(&sub)
 	if err != nil {
 		log.Printf("[ERROR] failed to create subscription, %v", err)
 		return err
 	}
 
+	interval, _ := time.ParseDuration("24h")
+
 	update := db.Update{
-		SubscriptionID: subID,
-		UpdateInterval: "1d",
+		SubscriptionID: sub.ID,
+		UpdateInterval: interval,
 		LastUpdated:    time.Now(),
 	}
 
