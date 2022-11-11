@@ -5,14 +5,11 @@ import (
 )
 
 type Querier interface {
-	CreateSubsctiption(sub *Subscription) error
-	GetSubsctiption(id string) (Subscription, error)
+	SaveSubsctiption(sub *Subscription) error
+	GetSubscriptions() ([]Subscription, error)
 	DeleteSubsctiption(sub *Subscription) error
 	CreateEpisode(e *Episode) error
 	GetEpisodes(limit int) ([]Episode, error)
-	ChangeUpdate(u *Update) error
-	GetUpdates() ([]Update, error)
-	DeleteUpdate(id string) error
 }
 
 var _ Querier = (*Queries)(nil)

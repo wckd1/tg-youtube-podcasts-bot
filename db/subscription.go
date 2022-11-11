@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	bolt "go.etcd.io/bbolt"
 )
@@ -13,9 +14,11 @@ type Subscription struct {
 	URL     string
 	IsVideo bool
 	Filter  string
+	UpdateInterval time.Duration
+	LastUpdated    time.Time
 }
 
-func (q *Queries) CreateSubsctiption(sub *Subscription) error {
+func (q *Queries) SaveSubsctiption(sub *Subscription) error {
 	return q.db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte("subscriptions"))
 		if err != nil {
@@ -30,8 +33,8 @@ func (q *Queries) CreateSubsctiption(sub *Subscription) error {
 	})
 }
 
-func (q *Queries) GetSubsctiption(id string) (Subscription, error) {
-	result := Subscription{}
+func (q *Queries) GetSubscriptions() ([]Subscription, error) {
+	var result []Subscription
 
 	err := q.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("subscriptions"))
@@ -39,12 +42,16 @@ func (q *Queries) GetSubsctiption(id string) (Subscription, error) {
 			return fmt.Errorf("no saved subscriptions")
 		}
 
-		v := b.Get([]byte(id))
-		if err := json.Unmarshal(v, &result); err != nil {
-			log.Printf("[WARN] failed to unmarshal, %v", err)
-			return err
-		}
+		c := b.Cursor()
 
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			s:= Subscription{}
+			if err := json.Unmarshal(v, &s); err != nil {
+				log.Printf("[WARN] failed to unmarshal, %v", err)
+				continue
+			}
+			result = append(result, s)
+		}
 		return nil
 	})
 

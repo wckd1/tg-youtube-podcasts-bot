@@ -52,11 +52,6 @@ func (fs FeedService) Delete(arg string) error {
 		return err
 	}
 
-	if err = fs.Store.DeleteUpdate(sub.ID); err != nil {
-		log.Printf("[ERROR] failed to remove update for %s, %v", sub.ID, err)
-		return err
-	}
-
 	return nil
 }
 
@@ -69,32 +64,13 @@ func (fs FeedService) GetEpisodes() (eps []db.Episode, err error) {
 	return
 }
 
-// Get list of pending subscriptions
-func (fs FeedService) GetPendingSubsctiptions() (subs []db.Subscription, err error) {
-	// Get saved updates
-	upds, err := fs.Store.GetUpdates()
+// Get list of subscriptions
+func (fs FeedService) GetSubscriptions() (subs []db.Subscription, err error) {
+	// Get saved subscriptions
+	subs, err = fs.Store.GetSubscriptions()
 	if err != nil {
-		log.Printf("[ERROR] failed to get updates, %v", err)
-		return
+		log.Printf("[ERROR] failed to get subscriptions, %v", err)
 	}
-
-	now := time.Now()
-
-	for _, upd := range upds {
-		// Calculate next update time for subscription
-		updt := upd.LastUpdated.Add(upd.UpdateInterval)
-
-		if updt.Before(now) || updt.Equal(now) {
-			// Get subscription if update required
-			sub, err := fs.Store.GetSubsctiption(upd.SubscriptionID)
-			if err != nil {
-				log.Printf("[ERROR] failed to get subscription, %v", err)
-				continue
-			}
-			subs = append(subs, sub)
-		}
-	}
-
 	return
 }
 
@@ -129,22 +105,14 @@ func (fs FeedService) addVideo(sub db.Subscription) error {
 
 // Handle subscription request
 func (fs FeedService) addSubsctiption(sub db.Subscription) error {
-	err := fs.Store.CreateSubsctiption(&sub)
-	if err != nil {
-		log.Printf("[ERROR] failed to create subscription, %v", err)
-		return err
-	}
-
 	interval, _ := time.ParseDuration("24h")
 
-	update := db.Update{
-		SubscriptionID: sub.ID,
-		UpdateInterval: interval,
-		LastUpdated:    time.Now(),
-	}
+	sub.UpdateInterval = interval
+	sub.LastUpdated = time.Now()
 
-	if err = fs.Store.ChangeUpdate(&update); err != nil {
-		log.Printf("[ERROR] failed to create update, %v", err)
+	err := fs.Store.SaveSubsctiption(&sub)
+	if err != nil {
+		log.Printf("[ERROR] failed to create subscription, %v", err)
 		return err
 	}
 

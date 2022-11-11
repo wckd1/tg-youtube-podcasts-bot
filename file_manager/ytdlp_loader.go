@@ -30,7 +30,6 @@ func (l YTDLPLoader) Download(ctx context.Context, url string) (file localFile, 
 	// Load audio with metadata
 	cmdStr := fmt.Sprintf(ytdlpCmd, id, url)
 	cmd := exec.CommandContext(ctx, "sh", "-c", cmdStr)
-	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Dir = destPath
 
