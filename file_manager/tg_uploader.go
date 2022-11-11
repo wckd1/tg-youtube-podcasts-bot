@@ -42,7 +42,7 @@ func (u TelegramUploader) Upload(ctx context.Context, file localFile) (url strin
 
 	// Remove local audio
 	err = os.Remove(file.path)
-	log.Printf("[ERROR] failed to delete audio jsofilen, %v", err)
+	log.Printf("[ERROR] failed to delete audio file, %v", err)
 
 	return
 }

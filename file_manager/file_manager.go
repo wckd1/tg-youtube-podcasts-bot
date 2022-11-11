@@ -11,6 +11,10 @@ import (
 	"time"
 )
 
+const (
+	maxDescriptionLenght = 500
+)
+
 type localFile struct {
 	path string
 	info fileInfo
@@ -106,7 +110,11 @@ func parseInfo(path string) (info fileInfo, err error) {
 	for _, u := range furls {
 		desc = strings.ReplaceAll(desc, u, "")
 	}
-	info.Description = desc
+	if len(desc) > maxDescriptionLenght {
+		info.Description = desc[:maxDescriptionLenght - 3] + "..."
+	} else {
+		info.Description = desc
+	}
 
 	// Remove local info json
 	err = os.Remove(path)

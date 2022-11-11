@@ -61,6 +61,7 @@ func (fs FeedService) parseSubscription(arguments string) (sub db.Subscription, 
 	if ok && path == "watch" {
 		sub.IsVideo = true
 		sub.URL = purl.String()
+		return
 	}
 
 	// Check for valid channel link
@@ -72,6 +73,7 @@ func (fs FeedService) parseSubscription(arguments string) (sub db.Subscription, 
 
 		chanID := strings.Split(purl.Path, "/")[2]
 		sub.ID = strings.Join([]string{chanID, sub.Filter}, "_")
+		return
 	}
 
 	// No supported links found

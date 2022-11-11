@@ -18,7 +18,7 @@ type YTDLPLoader struct{}
 const (
 	baseCmd    = "yt-dlp -x --audio-format=mp3 --audio-quality=0 -f m4a/bestaudio --write-info-json --no-progress %s"
 	loadArgs   = "-o %s.tmp"
-	updateArgs = "--no-write-playlist-metafiles --dateafter %s -P \"%s\""
+	updateArgs = "--no-write-playlist-metafiles --playlist-end 10 --dateafter %s -P \"%s\" "
 	filterArgs = "--match-filters title~='%s'"
 
 	dlPath  = "./storage/downloads/"
