@@ -8,76 +8,97 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
-	"mvdan.cc/xurls/v2"
 )
 
 type YTDLPLoader struct{}
 
 const (
-	loadCmd = "yt-dlp -x --audio-format=mp3 --audio-quality=0 -f m4a/bestaudio --write-info-json --no-progress -o %s.tmp %s"
-	destPath = "./storage/downloads/"
-	infoExt  = ".tmp.info.json"
-	checkCmd = "yt-dlp %s --skip-download --write-info-json --no-write-playlist-metafiles --dateafter %s"
-	titleFilter = "--match-filters title~='%s'"
+	baseCmd    = "yt-dlp -x --audio-format=mp3 --audio-quality=0 -f m4a/bestaudio --write-info-json --no-progress %s"
+	loadArgs   = "-o %s.tmp"
+	updateArgs = "--no-write-playlist-metafiles --dateafter %s -P \"%s\""
+	filterArgs = "--match-filters title~='%s'"
+
+	dlPath  = "./storage/downloads/"
+	infoExt = ".info.json"
 )
 
-func (l YTDLPLoader) DownloadWithInfo(ctx context.Context, url string) (file localFile, err error) {
+func (l YTDLPLoader) Download(ctx context.Context, url string) (file localFile, err error) {
 	file = localFile{}
 	id := uuid.New().String()
 
-	// Load audio with metadata
-	cmdStr := fmt.Sprintf(loadCmd, id, url)
-	cmd := exec.CommandContext(ctx, "sh", "-c", cmdStr)
-	cmd.Stdout = os.Stdout
-	cmd.Dir = destPath
+	// Prepare yt-dlp command
+	fcmd := fmt.Sprintf(baseCmd, url)
+	args := fmt.Sprintf(loadArgs, id)
+	cmdStr := strings.Join([]string{fcmd, args}, " ")
 
-	log.Printf("[DEBUG] executing command: %s", cmd.String())
-	if err = cmd.Run(); err != nil {
+	// Load audio with metadata
+	if err = executeCommand(ctx, cmdStr); err != nil {
 		log.Printf("[ERROR] failed to execute command: %v", err)
 		return
 	}
 
-	file.path = filepath.Join(destPath, id+".mp3")
+	file.path = filepath.Join(dlPath, id+".mp3")
 
 	// Parse image, title and description
-	infoPath := filepath.Join(destPath, id+infoExt)
-	info, err := parseInfo(infoPath)
+	infoPath := filepath.Join(dlPath, id+".tmp"+infoExt)
+	file.info, err = parseInfo(infoPath)
 	if err != nil {
-		log.Printf("[ERROR] failed to open info json: %v", err)
 		return
 	}
 
-	// Sanitize description
-	desc := info.Description
-	furls := xurls.Relaxed().FindAllString(desc, -1)
-	for _, u := range furls {
-		desc = strings.ReplaceAll(desc, u, "")
+	return
+}
+
+func (l YTDLPLoader) DownloadUpdates(ctx context.Context, url string, date time.Time) (files []localFile, err error) {
+	id := uuid.New().String()
+
+	// Prepare yt-dlp command
+	fcmd := fmt.Sprintf(baseCmd, url)
+	args := fmt.Sprintf(
+		updateArgs,
+		date.Format("20060102"), // For filter by date --dateafter "YYYYMMDD" // Maybe -1
+		"./"+id,                 // Output directory
+	)
+	cmdStr := strings.Join([]string{fcmd, args}, " ")
+
+	// Load audio with metadata
+	if err = executeCommand(ctx, cmdStr); err != nil {
+		log.Printf("[ERROR] failed to execute command: %v", err)
+		return
 	}
-	info.Description = desc
 
-	file.info = info
-
-	// Remove local info json
-	err = os.Remove(infoPath)
+	// Get downloaded files
+	dlFiles, err := filepath.Glob(filepath.Join(dlPath, id, "*.mp3"))
 	if err != nil {
-		log.Printf("[ERROR] failed to delete info json, %v", err)
+		log.Printf("[ERROR] failed to open source directory: %v", err)
+		return
+	}
+	// TODO: Run in gorutines with channel to handle finish
+	for _, f := range dlFiles {
+		file := localFile{
+			path: f,
+		}
+
+		infoPath := f[0:len(f)-4] + infoExt
+		file.info, err = parseInfo(infoPath)
+		if err != nil {
+			return
+		}
+
+		files = append(files, file)
 	}
 
 	return
 }
 
-func (l YTDLPLoader) DownloadUpdates(ctx context.Context, url string, date string)  (files []localFile, err error) {
+func executeCommand(ctx context.Context, cmdStr string) error {
+	cmd := exec.CommandContext(ctx, "sh", "-c", cmdStr)
+	cmd.Stdout = os.Stdout
+	cmd.Dir = dlPath
 
-	return
+	log.Printf("[DEBUG] executing command: %s", cmd.String())
+	return cmd.Run()
 }
-
-// All filters, separate json files
-// yt-dlp --dateafter 20200520 --match-filters title~='MOUNTAIN BIKE' https://www.youtube.com/playlist\?list\=PLWx61XgoQmqdkfWC58_sYKAZvdQt9eBxQ --write-info-json --skip-download --no-write-playlist-metafiles
-
-// For filter by title
-// --match-filters title~='{title}'
-
-// For filter by date
-// --dateafter "YYYYMMDD"

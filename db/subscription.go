@@ -10,10 +10,10 @@ import (
 )
 
 type Subscription struct {
-	ID      string
-	URL     string
-	IsVideo bool
-	Filter  string
+	ID             string
+	URL            string
+	IsVideo        bool
+	Filter         string
 	UpdateInterval time.Duration
 	LastUpdated    time.Time
 }
@@ -45,7 +45,7 @@ func (q *Queries) GetSubscriptions() ([]Subscription, error) {
 		c := b.Cursor()
 
 		for k, v := c.First(); k != nil; k, v = c.Next() {
-			s:= Subscription{}
+			s := Subscription{}
 			if err := json.Unmarshal(v, &s); err != nil {
 				log.Printf("[WARN] failed to unmarshal, %v", err)
 				continue
