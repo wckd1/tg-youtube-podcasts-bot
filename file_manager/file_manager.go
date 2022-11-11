@@ -111,7 +111,7 @@ func parseInfo(path string) (info fileInfo, err error) {
 		desc = strings.ReplaceAll(desc, u, "")
 	}
 	if len(desc) > maxDescriptionLenght {
-		info.Description = desc[:maxDescriptionLenght - 3] + "..."
+		info.Description = desc[:maxDescriptionLenght-3] + "..."
 	} else {
 		info.Description = desc
 	}

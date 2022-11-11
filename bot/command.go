@@ -20,7 +20,7 @@ type Commands []Command
 func (c Commands) OnMessage(msg Message) Response {
 	resps := make(chan string)
 
-	wg := syncs.NewSizedGroup(4)
+	wg := syncs.NewSizedGroup(2)
 	for _, command := range c {
 		command := command
 

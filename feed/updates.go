@@ -1,9 +1,12 @@
 package feed
 
 import (
+	"context"
 	"log"
 	"time"
 	"wckd1/tg-youtube-podcasts-bot/db"
+
+	"github.com/go-pkgz/syncs"
 )
 
 func (fs FeedService) CheckForUpdates() {
@@ -30,24 +33,29 @@ func (fs FeedService) CheckForUpdates() {
 	}
 
 	// Update subscription if required
+	wg := syncs.NewSizedGroup(len(pendings))
+
 	for _, sub := range pendings {
-		// TODO: Run in gorutines with channel to handle finish
-		dls, err := fs.FileManager.CheckUpdate(fs.Context, sub.URL, sub.LastUpdated, sub.Filter)
-		if err != nil {
-			log.Printf("[WARN] failed to check update, %v", err)
-			continue
-		}
-
-		for _, dl := range dls {
-			if err = fs.saveEpisode(dl); err != nil {
-				log.Printf("[ERROR] failed to add episode, %v", err)
-				continue
+		wg.Go(func(ctx context.Context) {
+			dls, err := fs.FileManager.CheckUpdate(fs.Context, sub.URL, sub.LastUpdated, sub.Filter)
+			if err != nil {
+				log.Printf("[WARN] failed to check update, %v", err)
+				return
 			}
-		}
 
-		sub.LastUpdated = time.Now()
-		if err := fs.Store.SaveSubsctiption(&sub); err != nil {
-			log.Printf("[WARN] failed to update time, %v", err)
-		}
+			for _, dl := range dls {
+				if err = fs.saveEpisode(dl); err != nil {
+					log.Printf("[ERROR] failed to add episode, %v", err)
+					return
+				}
+			}
+
+			sub.LastUpdated = time.Now()
+			if err := fs.Store.SaveSubsctiption(&sub); err != nil {
+				log.Printf("[WARN] failed to update time, %v", err)
+			}
+		})
 	}
+
+	go wg.Wait()
 }

@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/go-pkgz/syncs"
 	"github.com/google/uuid"
 )
 
@@ -79,19 +80,33 @@ func (l YTDLPLoader) DownloadUpdates(ctx context.Context, url string, date time.
 		log.Printf("[ERROR] failed to open source directory: %v", err)
 		return
 	}
-	// TODO: Run in gorutines with channel to handle finish
+
+	resps := make(chan localFile)
+	wg := syncs.NewSizedGroup(len(dlFiles))
+
 	for _, f := range dlFiles {
-		file := localFile{
-			path: f,
-		}
+		wg.Go(func(ctx context.Context) {
+			file := localFile{
+				path: f,
+			}
 
-		infoPath := f[0:len(f)-4] + infoExt
-		file.info, err = parseInfo(infoPath)
-		if err != nil {
-			return
-		}
+			infoPath := f[0:len(f)-4] + infoExt
+			file.info, err = parseInfo(infoPath)
+			if err != nil {
+				return
+			}
 
-		files = append(files, file)
+			resps <- file
+		})
+	}
+
+	go func() {
+		wg.Wait()
+		close(resps)
+	}()
+
+	for r := range resps {
+		files = append(files, r)
 	}
 
 	return

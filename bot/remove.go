@@ -16,7 +16,7 @@ func (a Remove) OnMessage(msg Message) Response {
 
 	if err := a.FeedService.Delete(msg.Arguments); err != nil {
 		return Response{
-			Text: "Failed to add subscription. See logs for more info",
+			Text: "Failed to remove subscription. See logs for more info",
 			Send: true,
 		}
 	}

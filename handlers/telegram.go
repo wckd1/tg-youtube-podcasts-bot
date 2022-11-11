@@ -78,7 +78,7 @@ func (l *Telegram) sendBotResponse(resp bot.Response, chatID int64) error {
 	return nil
 }
 
-func (l *Telegram) SubmitText(ctx context.Context, text string) {
+func (l *Telegram) Submit(ctx context.Context, text string) {
 	l.msgs.once.Do(func() { l.msgs.ch = make(chan bot.Response, 100) })
 
 	select {
