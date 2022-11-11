@@ -18,7 +18,7 @@ type YTDLPLoader struct{}
 const (
 	baseCmd    = "yt-dlp -x --audio-format=mp3 --audio-quality=0 -f m4a/bestaudio --write-info-json --no-progress %s"
 	loadArgs   = "-o %s.tmp"
-	updateArgs = "--no-write-playlist-metafiles --playlist-end 10 --dateafter %s -P \"%s\" "
+	updateArgs = "--no-write-playlist-metafiles --playlist-end 10 --dateafter %s -P \"%s\""
 	filterArgs = "--match-filters title~='%s'"
 
 	dlPath  = "./storage/downloads/"
@@ -52,7 +52,7 @@ func (l YTDLPLoader) Download(ctx context.Context, url string) (file localFile, 
 	return
 }
 
-func (l YTDLPLoader) DownloadUpdates(ctx context.Context, url string, date time.Time) (files []localFile, err error) {
+func (l YTDLPLoader) DownloadUpdates(ctx context.Context, url string, date time.Time, filter string) (files []localFile, err error) {
 	id := uuid.New().String()
 
 	// Prepare yt-dlp command
@@ -62,6 +62,9 @@ func (l YTDLPLoader) DownloadUpdates(ctx context.Context, url string, date time.
 		date.Format("20060102"), // For filter by date --dateafter "YYYYMMDD" // Maybe -1
 		"./"+id,                 // Output directory
 	)
+	if len(filter) > 0 {
+		args = args + " " + fmt.Sprintf(filterArgs, filter)
+	}
 	cmdStr := strings.Join([]string{fcmd, args}, " ")
 
 	// Load audio with metadata

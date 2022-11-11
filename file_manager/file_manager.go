@@ -39,7 +39,7 @@ type Download struct {
 // Downloader defines interface to download file to local fs
 type Downloader interface {
 	Download(ctx context.Context, url string) (file localFile, err error)
-	DownloadUpdates(ctx context.Context, url string, date time.Time) (files []localFile, err error)
+	DownloadUpdates(ctx context.Context, url string, date time.Time, filter string) (files []localFile, err error)
 }
 
 // Uloader defines interface to upload file from local fs to storage
@@ -71,8 +71,8 @@ func (fm FileManager) Get(ctx context.Context, url string) (download Download, e
 	return
 }
 
-func (fm FileManager) CheckUpdate(ctx context.Context, url string, date time.Time) (downloads []Download, err error) {
-	files, err := fm.Downloader.DownloadUpdates(ctx, url, date)
+func (fm FileManager) CheckUpdate(ctx context.Context, url string, date time.Time, filter string) (downloads []Download, err error) {
+	files, err := fm.Downloader.DownloadUpdates(ctx, url, date, filter)
 	if err != nil {
 		return
 	}

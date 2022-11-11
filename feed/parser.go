@@ -69,7 +69,8 @@ func (fs FeedService) parseSubscription(arguments string) (sub db.Subscription, 
 		sub.URL = purl.String()
 
 		// Parse optional filter
-		sub.Filter = strings.ReplaceAll(arguments, furl, "")
+		filter := strings.ReplaceAll(arguments, furl, "")
+		sub.Filter = strings.TrimSpace(filter)
 
 		chanID := strings.Split(purl.Path, "/")[2]
 		sub.ID = strings.Join([]string{chanID, sub.Filter}, "_")
