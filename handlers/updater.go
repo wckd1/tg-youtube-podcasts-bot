@@ -14,8 +14,8 @@ type Updater struct {
 }
 
 func (u Updater) Start(ctx context.Context) {
-	// log.Printf("[INFO] Check for updates on startup")
-	// u.FeedService.CheckForUpdates()
+	log.Printf("[INFO] Check for updates on startup")
+	u.FeedService.CheckForUpdates()
 
 	log.Printf("[INFO] starting updater with %v interval", u.Delay)
 	ticker := time.NewTicker(u.Delay)
