@@ -5,6 +5,7 @@ go 1.19
 require (
 	github.com/go-pkgz/syncs v1.2.0
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
+	github.com/google/uuid v1.3.0
 	github.com/spf13/viper v1.14.0
 	go.etcd.io/bbolt v1.3.6
 	mvdan.cc/xurls/v2 v2.4.0
@@ -12,7 +13,6 @@ require (
 
 require (
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
-	github.com/google/uuid v1.3.0 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect

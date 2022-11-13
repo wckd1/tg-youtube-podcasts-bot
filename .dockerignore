@@ -1,0 +1,3 @@
+storage/*.db
+storage/downloads/*
+app.env.example
