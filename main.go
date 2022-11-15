@@ -88,7 +88,7 @@ func main() {
 
 	// Start handlers
 	go updater.Start(ctx)
-	go server.Run(ctx, config.RssKey, 6745)
+	go server.Run(ctx, config.RssKey, config.Port)
 
 	if err = tgListener.Start(ctx); err != nil {
 		log.Printf("[INFO] telegram listener stopped, %v", err)

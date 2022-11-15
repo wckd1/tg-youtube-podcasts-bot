@@ -12,6 +12,7 @@ type Config struct {
 	DebugMode      bool          `mapstructure:"DEBUG_MODE"`
 	UpdateInterval time.Duration `mapstructure:"UPDATE_INTERVAL"`
 	RssKey         string        `mapstructure:"RSS_KEY"`
+	Port           int           `mapstructure:"PORT"`
 }
 
 func LoadConfig() (c Config, err error) {
