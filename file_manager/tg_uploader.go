@@ -6,7 +6,12 @@ import (
 	"os"
 	"strings"
 
+	"mvdan.cc/xurls/v2"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+)
+
+const (
+	maxDescriptionLenght = 500
 )
 
 type TelegramUploader struct {
@@ -19,8 +24,19 @@ func (u TelegramUploader) Upload(ctx context.Context, file localFile) (url strin
 	msg := tgbotapi.NewAudio(u.ChatID, tgbotapi.FilePath(file.path))
 	msg.Thumb = tgbotapi.FileURL(file.info.ImageURL)
 	msg.Title = file.info.Title
+
+	// Update description for Telegram limits
+	desc := file.info.Description
+	furls := xurls.Relaxed().FindAllString(desc, -1)
+	for _, u := range furls {
+		desc = strings.ReplaceAll(desc, u, "")
+	}
+	if len(desc) > maxDescriptionLenght {
+		desc = desc[:maxDescriptionLenght-3] + "..."
+	}
+
 	msg.Caption = strings.Join(
-		[]string{"<b>" + file.info.Title + "</b>", file.info.Description},
+		[]string{"<b>" + file.info.Title + "</b>", desc},
 		"\n\n",
 	)
 	msg.ParseMode = tgbotapi.ModeHTML

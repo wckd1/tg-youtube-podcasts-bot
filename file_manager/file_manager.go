@@ -5,14 +5,8 @@ import (
 	"encoding/json"
 	"io"
 	"log"
-	"mvdan.cc/xurls/v2"
 	"os"
-	"strings"
 	"time"
-)
-
-const (
-	maxDescriptionLenght = 500
 )
 
 type localFile struct {
@@ -103,18 +97,6 @@ func parseInfo(path string) (info fileInfo, err error) {
 	byteValue, _ := io.ReadAll(jsonInfo)
 
 	json.Unmarshal(byteValue, &info)
-
-	// Sanitize description
-	desc := info.Description
-	furls := xurls.Relaxed().FindAllString(desc, -1)
-	for _, u := range furls {
-		desc = strings.ReplaceAll(desc, u, "")
-	}
-	if len(desc) > maxDescriptionLenght {
-		info.Description = desc[:maxDescriptionLenght-3] + "..."
-	} else {
-		info.Description = desc
-	}
 
 	// Remove local info json
 	err = os.Remove(path)
