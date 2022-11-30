@@ -49,10 +49,7 @@ func main() {
 	// File manager
 	fileManager := file_manager.FileManager{
 		Downloader: &file_manager.YTDLPLoader{},
-		Uploader: &file_manager.TelegramUploader{
-			BotAPI: tgAPI,
-			ChatID: config.Telegram.ChatID,
-		},
+		Uploader: file_manager.NewS3Uploader(ctx, config.AWS),
 	}
 
 	// Feed service
