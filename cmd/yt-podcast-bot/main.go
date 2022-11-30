@@ -8,7 +8,7 @@ import (
 	"wckd1/tg-youtube-podcasts-bot/internal/bot"
 	db "wckd1/tg-youtube-podcasts-bot/internal/db"
 	"wckd1/tg-youtube-podcasts-bot/internal/feed"
-	proxy_file_manager "wckd1/tg-youtube-podcasts-bot/internal/file_manager/proxy"
+	"wckd1/tg-youtube-podcasts-bot/internal/file_manager"
 	"wckd1/tg-youtube-podcasts-bot/internal/handlers"
 	"wckd1/tg-youtube-podcasts-bot/internal/util"
 
@@ -47,7 +47,10 @@ func main() {
 	}()
 
 	// File manager
-	fileManager := proxy_file_manager.ProxyFileManager{}
+	fileManager := file_manager.FileManager{
+		Downloader: &file_manager.YTDLPLoader{},
+		Uploader: file_manager.NewS3Uploader(ctx, config.AWS),
+	}
 
 	// Feed service
 	feedSrv := feed.FeedService{
