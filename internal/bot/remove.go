@@ -1,7 +1,7 @@
 package bot
 
 import (
-	"wckd1/tg-youtube-podcasts-bot/feed"
+	"wckd1/tg-youtube-podcasts-bot/internal/feed"
 )
 
 type Remove struct {

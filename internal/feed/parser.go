@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"strings"
 	"time"
-	"wckd1/tg-youtube-podcasts-bot/db"
+	"wckd1/tg-youtube-podcasts-bot/internal/db"
 
 	"mvdan.cc/xurls/v2"
 )

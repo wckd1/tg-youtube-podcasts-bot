@@ -43,7 +43,7 @@ Servise expose only one endpoint for adding feed to Podcasts app.
 - `GET /rss/{key}` - returns generated rss xml with last 20 entries
 
 ## Configuration
-Add app.env file following the example of [app.env.example](https://github.com/wckd1/tg-youtube-podcasts-bot/blob/main/app.env.example)
+Add app.env file following the example of [app.env.example](https://github.com/wckd1/tg-youtube-podcasts-bot/internal/blob/main/app.env.example)
 
 - `BOT_API_TOKEN` - token for Telegram bot to communicate with (string)
 - `CHAT_ID` - id of chat/group where updates will be posted (integer)

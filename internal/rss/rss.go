@@ -2,7 +2,7 @@ package rss
 
 import (
 	"encoding/xml"
-	"wckd1/tg-youtube-podcasts-bot/db"
+	"wckd1/tg-youtube-podcasts-bot/internal/db"
 )
 
 type RSS struct {

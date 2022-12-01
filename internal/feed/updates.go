@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 	"time"
-	"wckd1/tg-youtube-podcasts-bot/db"
+	"wckd1/tg-youtube-podcasts-bot/internal/db"
 
 	"github.com/go-pkgz/syncs"
 )
