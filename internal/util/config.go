@@ -1,31 +1,43 @@
 package util
 
 import (
+	"log"
 	"time"
 
 	"github.com/spf13/viper"
 )
 
 type Config struct {
-	BotAPIToken    string        `mapstructure:"BOT_API_TOKEN"`
-	ChatID         int64         `mapstructure:"CHAT_ID"`
-	DebugMode      bool          `mapstructure:"DEBUG_MODE"`
-	UpdateInterval time.Duration `mapstructure:"UPDATE_INTERVAL"`
-	RssKey         string        `mapstructure:"RSS_KEY"`
-	Port           int           `mapstructure:"PORT"`
+	Feed struct {
+		UpdateInterval time.Duration `mapstructure:"update_interval"`
+	}
+	Server struct {
+		RssKey string `mapstructure:"rss_key"`
+		Port   int    `mapstructure:"port"`
+	}
+	Telegram struct {
+		BotAPIToken string `mapstructure:"bot_token"`
+		ChatID      int64  `mapstructure:"chat_id"`
+		DebugMode   bool   `mapstructure:"debug_mode"`
+	}
 }
 
 func LoadConfig() (c Config, err error) {
 	viper.AddConfigPath("./")
-	viper.SetConfigName("app")
-	viper.SetConfigType("env")
+	viper.SetConfigName("config")
+	viper.SetConfigType("yml")
 	viper.AutomaticEnv()
 
 	err = viper.ReadInConfig()
 	if err != nil {
+		log.Printf("[ERROR] error parse config: %v", err)
 		return
 	}
 
 	err = viper.Unmarshal(&c)
+	if err != nil {
+		log.Printf("[ERROR] unable to decode into struct, %v", err)
+	}
+
 	return
 }

@@ -29,12 +29,12 @@ func main() {
 	dbStore := db.NewStore(dbConn)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	tgAPI, err := tgbotapi.NewBotAPI(config.BotAPIToken)
+	tgAPI, err := tgbotapi.NewBotAPI(config.Telegram.BotAPIToken)
 	if err != nil {
 		log.Fatal("[ERROR] cannot init bot api:", err)
 	}
 
-	tgAPI.Debug = config.DebugMode
+	tgAPI.Debug = config.Telegram.DebugMode
 
 	// Grasefull quit
 	quit := make(chan os.Signal, 1)
@@ -51,7 +51,7 @@ func main() {
 		Downloader: &file_manager.YTDLPLoader{},
 		Uploader: &file_manager.TelegramUploader{
 			BotAPI: tgAPI,
-			ChatID: config.ChatID,
+			ChatID: config.Telegram.ChatID,
 		},
 	}
 
@@ -72,7 +72,7 @@ func main() {
 	tgListener := handlers.Telegram{
 		BotAPI:   tgAPI,
 		Commands: commands,
-		ChatID:   config.ChatID,
+		ChatID:   config.Telegram.ChatID,
 	}
 
 	// Server for API
@@ -82,13 +82,13 @@ func main() {
 
 	// Timer handler for handle updates
 	updater := handlers.Updater{
-		Delay:       config.UpdateInterval,
+		Delay:       config.Feed.UpdateInterval,
 		FeedService: feedSrv,
 	}
 
 	// Start handlers
 	go updater.Start(ctx)
-	go server.Run(ctx, config.RssKey, config.Port)
+	go server.Run(ctx, config.Server.RssKey, config.Server.Port)
 
 	if err = tgListener.Start(ctx); err != nil {
 		log.Printf("[INFO] telegram listener stopped, %v", err)

@@ -43,14 +43,14 @@ Servise expose only one endpoint for adding feed to Podcasts app.
 - `GET /rss/{key}` - returns generated rss xml with last 20 entries
 
 ## Configuration
-Add app.env file following the example of [app.env.example](https://github.com/wckd1/tg-youtube-podcasts-bot/internal/blob/main/app.env.example)
+Add config.yml file following the example of [example-config.yml](https://github.com/wckd1/tg-youtube-podcasts-bot/blob/main/example-config.yml)
 
-- `BOT_API_TOKEN` - token for Telegram bot to communicate with (string)
-- `CHAT_ID` - id of chat/group where updates will be posted (integer)
-- `DEBUG_MODE` - enable extended logging for debug mode (True/False)
-- `UPDATE_INTERVAL` - interaval for check new updates. Should be set in golang time.Duration syntax (ex. "1h")
-- `RSS_KEY` - secret key that will be added to /rss/ endpoint (string)
-- `PORT` - port for http server to listen to (integer)
+- `feed.update_interval` - interaval for check new updates. Should be set in golang time.Duration syntax (ex. "1h")
+- `server.port` - port for http server to listen to (integer)
+- `server.rss_key` - secret key that will be added to /rss/ endpoint (string)
+- `telegram.bot_token` - token for Telegram bot to communicate with (string)
+- `telegram.chat_id` - id of chat/group where updates will be posted (integer)
+- `telegram.debug_mode` - enable extended logging for debug mode (True/False)
 
 ## TODO
 - For now, Telegram is used as storage with a limit of [50Mb](https://core.telegram.org/bots/api#sending-files)
