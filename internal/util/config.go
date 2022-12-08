@@ -21,6 +21,14 @@ type Config struct {
 		ChatID      int64  `mapstructure:"chat_id"`
 		DebugMode   bool   `mapstructure:"debug_mode"`
 	}
+	AWS AWSConfig
+}
+
+type AWSConfig struct {
+	Key string `mapstructure:"access_key_id"`
+	Secret string `mapstructure:"secret_access_key"`
+	Region string `mapstructure:"region"`
+	Bucket string `mapstructure:"bucket"`
 }
 
 func LoadConfig() (c Config, err error) {

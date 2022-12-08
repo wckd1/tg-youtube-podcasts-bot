@@ -55,9 +55,13 @@ Add config.yml file following the example of [example-config.yml](https://github
     - `bot_token` - token for Telegram bot to communicate with (string)
     - `chat_id` - id of chat/group where updates will be posted (integer)
     - `debug_mode` - enable extended logging for debug mode (True/False)
+- `aws`
+    - `access_key_id`: AWS S3 access key id
+    - `secret_access_key`: AWS S3 secret access key
+    - `region`: S3 region
+    - `bucket`: S3 bucket name
 
 ## TODO
-- For now, Telegram is used as storage with a limit of [50Mb](https://core.telegram.org/bots/api#sending-files)
 - Add sponsorblock
 - Retry for downloads/uploads
 - Replace text commands with custom keyboard
