@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"sync"
-	"wckd1/tg-youtube-podcasts-bot/bot"
+	"wckd1/tg-youtube-podcasts-bot/internal/bot"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )

@@ -2,8 +2,8 @@ package feed
 
 import (
 	"time"
-	"wckd1/tg-youtube-podcasts-bot/db"
-	"wckd1/tg-youtube-podcasts-bot/file_manager"
+	"wckd1/tg-youtube-podcasts-bot/internal/db"
+	"wckd1/tg-youtube-podcasts-bot/internal/file_manager"
 )
 
 // Handle single video request

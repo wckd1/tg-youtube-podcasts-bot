@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 	"time"
-	"wckd1/tg-youtube-podcasts-bot/feed"
+	"wckd1/tg-youtube-podcasts-bot/internal/feed"
 )
 
 // Updater is a task runner that check for updates with given delay

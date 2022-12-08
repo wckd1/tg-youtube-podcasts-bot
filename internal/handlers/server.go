@@ -6,8 +6,8 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"wckd1/tg-youtube-podcasts-bot/feed"
-	"wckd1/tg-youtube-podcasts-bot/rss"
+	"wckd1/tg-youtube-podcasts-bot/internal/feed"
+	"wckd1/tg-youtube-podcasts-bot/internal/rss"
 )
 
 // Server provides HTTP API
