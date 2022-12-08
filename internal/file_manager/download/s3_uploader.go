@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 	"wckd1/tg-youtube-podcasts-bot/internal/file_manager"
-	"wckd1/tg-youtube-podcasts-bot/util"
+	"wckd1/tg-youtube-podcasts-bot/internal/util"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/credentials"
