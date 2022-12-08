@@ -9,6 +9,7 @@ import (
 
 type FeedService struct {
 	Context     context.Context
+	Limit       int
 	Store       db.Store
 	FileManager file_manager.FileManager
 }
@@ -56,7 +57,7 @@ func (fs FeedService) Delete(arg string) error {
 
 // Get list of available episodes
 func (fs FeedService) GetEpisodes() (eps []db.Episode, err error) {
-	eps, err = fs.Store.GetEpisodes(20)
+	eps, err = fs.Store.GetEpisodes(fs.Limit)
 	if err != nil {
 		log.Printf("[ERROR] failed to get episode, %v", err)
 	}

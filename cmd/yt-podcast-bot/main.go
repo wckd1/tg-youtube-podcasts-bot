@@ -58,6 +58,7 @@ func main() {
 	// Feed service
 	feedSrv := feed.FeedService{
 		Context:     ctx,
+		Limit:       config.Feed.Limit,
 		Store:       dbStore,
 		FileManager: fileManager,
 	}
