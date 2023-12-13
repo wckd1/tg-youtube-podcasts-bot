@@ -59,7 +59,7 @@ Add config.yml file following the example of [example-config.yml](https://github
 
 ## TODO
 - Add multi-user support
-- Add rss urls with filters
-- Add sponsorblock
-- Retry for downloads/uploads
+- Add fetch old episodes on subscribe
+- Support rss feed by subscription
+- Optimize update command
 - Replace text commands with custom keyboard

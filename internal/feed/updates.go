@@ -1,12 +1,10 @@
 package feed
 
 import (
-	"context"
 	"log"
+	"sync"
 	"time"
 	"wckd1/tg-youtube-podcasts-bot/internal/db"
-
-	"github.com/go-pkgz/syncs"
 )
 
 func (fs FeedService) CheckForUpdates() {
@@ -33,11 +31,14 @@ func (fs FeedService) CheckForUpdates() {
 	}
 
 	// Update subscription if required
-	wg := syncs.NewSizedGroup(len(pendings))
+	wg := sync.WaitGroup{}
+	wg.Add(len(pendings))
 
 	for _, sub := range pendings {
-		wg.Go(func(ctx context.Context) {
-			dls, err := fs.FileManager.CheckUpdate(fs.Context, sub.URL, sub.LastUpdated, sub.Filter)
+		go func(s db.Subscription) {
+			defer wg.Done()
+
+			dls, err := fs.FileManager.CheckUpdate(fs.Context, s.URL, s.LastUpdated, s.Filter)
 			if err != nil {
 				log.Printf("[WARN] failed to check update, %v", err)
 				return
@@ -50,12 +51,14 @@ func (fs FeedService) CheckForUpdates() {
 				}
 			}
 
-			sub.LastUpdated = time.Now()
-			if err := fs.Store.SaveSubsctiption(&sub); err != nil {
+			s.LastUpdated = time.Now()
+			if err := fs.Store.SaveSubsctiption(&s); err != nil {
 				log.Printf("[WARN] failed to update time, %v", err)
 			}
-		})
+		}(sub)
 	}
 
 	go wg.Wait()
+
+	log.Println("[INFO] update completed")
 }
