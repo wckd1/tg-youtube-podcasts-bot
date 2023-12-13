@@ -21,6 +21,7 @@ Subscribe to channel
 ```
 /add https://youtube.com/c/{id}
 /add https://youtube.com/channel/{id}
+/add https://youtube.com/{@id}
 ```
 
 Subscribe to playlist

@@ -19,6 +19,7 @@ import (
 // Channel:
 // /c/{id}
 // /channel/{id}
+// /channel/@{id}
 //
 // Playlist:
 // /watch?v={video_id}&list={id}
@@ -74,6 +75,17 @@ func (fs FeedService) parseSubscription(arguments string) (sub db.Subscription, 
 
 		chanID := strings.Split(purl.Path, "/")[2]
 		sub.ID = strings.Join([]string{chanID, sub.Filter}, "_")
+		return
+	}
+
+	if strings.HasPrefix(path, "@") {
+		sub.URL = purl.String()
+
+		// Parse optional filter
+		filter := strings.ReplaceAll(arguments, furl, "")
+		sub.Filter = strings.TrimSpace(filter)
+
+		sub.ID = strings.Join([]string{path, sub.Filter}, "_")
 		return
 	}
 
