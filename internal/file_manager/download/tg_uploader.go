@@ -1,4 +1,4 @@
-package file_manager
+package download_file_manager
 
 import (
 	"context"
@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"mvdan.cc/xurls/v2"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"mvdan.cc/xurls/v2"
 )
 
 const (
@@ -45,7 +45,7 @@ func (u TelegramUploader) Upload(ctx context.Context, file localFile) (url strin
 	log.Printf("[DEBUG] uploading file: %s", file.path)
 	resp, err := u.BotAPI.Send(msg)
 	if err != nil {
-		log.Printf("[ERROR] can't send message to telegram: %w", err)
+		log.Printf("[ERROR] can't send message to telegram: %v", err)
 		return
 	}
 

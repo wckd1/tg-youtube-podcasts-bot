@@ -1,4 +1,4 @@
-package file_manager
+package download_file_manager
 
 import (
 	"context"

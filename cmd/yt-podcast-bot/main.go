@@ -8,7 +8,7 @@ import (
 	"wckd1/tg-youtube-podcasts-bot/internal/bot"
 	db "wckd1/tg-youtube-podcasts-bot/internal/db"
 	"wckd1/tg-youtube-podcasts-bot/internal/feed"
-	"wckd1/tg-youtube-podcasts-bot/internal/file_manager"
+	download_file_manager "wckd1/tg-youtube-podcasts-bot/internal/file_manager/download"
 	"wckd1/tg-youtube-podcasts-bot/internal/handlers"
 	"wckd1/tg-youtube-podcasts-bot/internal/util"
 
@@ -47,9 +47,9 @@ func main() {
 	}()
 
 	// File manager
-	fileManager := file_manager.FileManager{
-		Downloader: &file_manager.YTDLPLoader{},
-		Uploader: &file_manager.TelegramUploader{
+	fileManager := download_file_manager.DownloadFileManager{
+		Downloader: &download_file_manager.YTDLPLoader{},
+		Uploader: &download_file_manager.TelegramUploader{
 			BotAPI: tgAPI,
 			ChatID: config.Telegram.ChatID,
 		},
