@@ -59,7 +59,6 @@ Add config.yml file following the example of [example-config.yml](https://github
 ## TODO
 - Add multi-user support
 - Add rss urls with filters
-- Add audio without storage
 - Add sponsorblock
 - Retry for downloads/uploads
 - Replace text commands with custom keyboard

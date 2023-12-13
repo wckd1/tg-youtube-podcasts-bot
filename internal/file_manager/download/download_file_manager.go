@@ -10,6 +10,8 @@ import (
 	"wckd1/tg-youtube-podcasts-bot/internal/file_manager"
 )
 
+var _ file_manager.FileManager = (*DownloadFileManager)(nil)
+
 type localFile struct {
 	path string
 	info file_manager.FileInfo
