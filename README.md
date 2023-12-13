@@ -57,7 +57,9 @@ Add config.yml file following the example of [example-config.yml](https://github
     - `debug_mode` - enable extended logging for debug mode (True/False)
 
 ## TODO
-- For now, Telegram is used as storage with a limit of [50Mb](https://core.telegram.org/bots/api#sending-files)
+- Add multi-user support
+- Add rss urls with filters
+- Add audio without storage
 - Add sponsorblock
 - Retry for downloads/uploads
 - Replace text commands with custom keyboard
