@@ -7,7 +7,7 @@ ENV CGO_ENABLED=0
 ADD . /build
 WORKDIR /build
 
-RUN go build -o /build/yt-podcast-bot -ldflags "-s -w"
+RUN go build -o /build/yt-podcast-bot -ldflags "-s -w" cmd/yt-podcast-bot/main.go
 
 #  Run stage
 FROM umputun/baseimage:app-latest

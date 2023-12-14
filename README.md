@@ -9,7 +9,7 @@ The service uses [yt-dlp](https://github.com/yt-dlp/yt-dlp) to pull videos and [
 
 ## Bot commands
 
-### `add`, `new`, `sub`
+### `add`
 Add subscription or single video to feed.
 
 Add single item
@@ -35,7 +35,7 @@ Filter string can be added to subscription to get only specified updates
 /add https://youtube.com/c/{id} {some title entry}
 ```
 
-### `remove`, `rm`, `delete`, `unsub`
+### `remove`
 Removes specified subscription. Same syntax as fo adding subscription.
 
 ## API
@@ -54,12 +54,11 @@ Add config.yml file following the example of [example-config.yml](https://github
     - `rss_key` - secret key that will be added to /rss/ endpoint (string)
 - `telegram`
     - `bot_token` - token for Telegram bot to communicate with (string)
-    - `chat_id` - id of chat/group where updates will be posted (integer)
     - `debug_mode` - enable extended logging for debug mode (True/False)
 
 ## TODO
 - Add multi-user support
+- Add manually created playlists
 - Add fetch old episodes on subscribe
-- Support rss feed by subscription
 - Optimize update command
 - Replace text commands with custom keyboard
