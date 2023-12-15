@@ -4,8 +4,10 @@ import (
 	"context"
 	"wckd1/tg-youtube-podcasts-bot/configs"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/playlist"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/rss"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/subscription"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/user"
 	"wckd1/tg-youtube-podcasts-bot/internal/infra/storage/bbolt"
 	"wckd1/tg-youtube-podcasts-bot/internal/infra/storage/bbolt/repository"
 )
@@ -15,13 +17,20 @@ type serviceProvider struct {
 	config configs.Config
 	store  *bbolt.BBoltStore
 
+	// User
+	userRepository user.UserRepository
+	userUsecase    *user.UserUsecase
+
+	// Playlist
+	playlistRepository playlist.PlaylistRepository
+
 	// Subscription
 	subscriptionRepository subscription.SubscriptionRepository
-	subscriptionUseCase    *subscription.SubscriptionUseCase
+	subscriptionUsecase    *subscription.SubscriptionUsecase
 
 	// Episode
 	episodeRepository episode.EpisodeRepository
-	episodeUseCase    *episode.EpisodeUseCase
+	episodeUsecase    *episode.EpisodeUsecase
 
 	// RSS
 	rssUseCase *rss.RSSUseCase
@@ -41,6 +50,31 @@ func (s *serviceProvider) Store() *bbolt.BBoltStore {
 	return s.store
 }
 
+// User
+func (s *serviceProvider) UserRepository() user.UserRepository {
+	if s.userRepository == nil {
+		s.userRepository = repository.NewUserRepository(s.Store())
+	}
+
+	return s.userRepository
+}
+func (s *serviceProvider) UserUsecase() *user.UserUsecase {
+	if s.userUsecase == nil {
+		s.userUsecase = user.NewUserUsecase(s.UserRepository(), s.PlaylistRepository())
+	}
+
+	return s.userUsecase
+}
+
+// Playlist
+func (s *serviceProvider) PlaylistRepository() playlist.PlaylistRepository {
+	if s.playlistRepository == nil {
+		s.playlistRepository = repository.NewPlaylistRepository(s.Store())
+	}
+
+	return s.playlistRepository
+}
+
 // Subscription
 func (s *serviceProvider) SubscriptionRepository() subscription.SubscriptionRepository {
 	if s.subscriptionRepository == nil {
@@ -49,12 +83,12 @@ func (s *serviceProvider) SubscriptionRepository() subscription.SubscriptionRepo
 
 	return s.subscriptionRepository
 }
-func (s *serviceProvider) SubscriptionUseCase() *subscription.SubscriptionUseCase {
-	if s.subscriptionUseCase == nil {
-		s.subscriptionUseCase = subscription.NewSubscriptionUseCase(s.SubscriptionRepository())
+func (s *serviceProvider) SubscriptionUsecase() *subscription.SubscriptionUsecase {
+	if s.subscriptionUsecase == nil {
+		s.subscriptionUsecase = subscription.NewSubscriptionUsecase(s.SubscriptionRepository())
 	}
 
-	return s.subscriptionUseCase
+	return s.subscriptionUsecase
 }
 
 // Episode
@@ -65,12 +99,12 @@ func (s *serviceProvider) EpisodeRepository() episode.EpisodeRepository {
 
 	return s.episodeRepository
 }
-func (s *serviceProvider) EpisodeUseCase() *episode.EpisodeUseCase {
-	if s.episodeUseCase == nil {
-		s.episodeUseCase = episode.NewEpisodeUseCase(s.EpisodeRepository())
+func (s *serviceProvider) EpisodeUsecase() *episode.EpisodeUsecase {
+	if s.episodeUsecase == nil {
+		s.episodeUsecase = episode.NewEpisodeUsecase(s.EpisodeRepository())
 	}
 
-	return s.episodeUseCase
+	return s.episodeUsecase
 }
 
 // RSS

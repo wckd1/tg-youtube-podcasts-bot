@@ -10,23 +10,23 @@ var (
 	ErrNoUpdatesRequired = errors.New("no updates are required")
 )
 
-type SubscriptionUseCase struct {
+type SubscriptionUsecase struct {
 	subscriptionRepository SubscriptionRepository
 }
 
-func NewSubscriptionUseCase(subscriptionRepository SubscriptionRepository) *SubscriptionUseCase {
-	return &SubscriptionUseCase{subscriptionRepository}
+func NewSubscriptionUsecase(subscriptionRepository SubscriptionRepository) *SubscriptionUsecase {
+	return &SubscriptionUsecase{subscriptionRepository}
 }
 
-func (uc SubscriptionUseCase) CreateSubscription() error {
+func (uc SubscriptionUsecase) CreateSubscription() error {
 	return nil
 }
 
-func (uc SubscriptionUseCase) RemoveSubscription() error {
+func (uc SubscriptionUsecase) RemoveSubscription() error {
 	return nil
 }
 
-func (uc SubscriptionUseCase) GetPendingSubscriptions() ([]Subscription, error) {
+func (uc SubscriptionUsecase) GetPendingSubscriptions() ([]Subscription, error) {
 	pSubs := make([]Subscription, 0)
 
 	// Get all subscriptions

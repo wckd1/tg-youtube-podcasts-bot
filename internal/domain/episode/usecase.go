@@ -1,9 +1,9 @@
 package episode
 
-type EpisodeUseCase struct {
+type EpisodeUsecase struct {
 	episodeRepository EpisodeRepository
 }
 
-func NewEpisodeUseCase(episodeRepository EpisodeRepository) *EpisodeUseCase {
-	return &EpisodeUseCase{episodeRepository}
+func NewEpisodeUsecase(episodeRepository EpisodeRepository) *EpisodeUsecase {
+	return &EpisodeUsecase{episodeRepository}
 }

@@ -9,6 +9,9 @@ The service uses [yt-dlp](https://github.com/yt-dlp/yt-dlp) to pull videos and [
 
 ## Bot commands
 
+### `reg`
+Create new user with default playlist
+
 ### `add`
 Add subscription or single video to feed.
 

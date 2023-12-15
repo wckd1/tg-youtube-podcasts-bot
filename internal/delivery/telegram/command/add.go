@@ -7,10 +7,10 @@ import (
 )
 
 type add struct {
-	subscriptionUsecase *subscription.SubscriptionUseCase
+	subscriptionUsecase *subscription.SubscriptionUsecase
 }
 
-func NewAddCommand(subUC *subscription.SubscriptionUseCase) telegram.Command {
+func NewAddCommand(subUC *subscription.SubscriptionUsecase) telegram.Command {
 	return add{subscriptionUsecase: subUC}
 }
 

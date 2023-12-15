@@ -16,13 +16,13 @@ var (
 
 // Updater is a task runner that check for updates with given delay
 type Updater struct {
-	subscriptionUsecase *subscription.SubscriptionUseCase
+	subscriptionUsecase *subscription.SubscriptionUsecase
 	contentManager      content.ContentManager
 	delay               time.Duration
 }
 
 func NewUpdater(
-	subUC *subscription.SubscriptionUseCase,
+	subUC *subscription.SubscriptionUsecase,
 	cm content.ContentManager,
 	delay time.Duration,
 ) Updater {

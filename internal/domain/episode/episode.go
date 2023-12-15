@@ -1,22 +1,21 @@
 package episode
 
 type Episode struct {
-	UUID        string    `xml:"guid"`
-	Enclosure   Enclosure `xml:"enclosure"`
-	Link        string    `xml:"link"`
-	Image       string    `xml:"image"`
-	Title       string    `xml:"title"`
-	Description string    `xml:"description"`
-	Author      string    `xml:"author,omitempty"`
-	Duration    int       `xml:"duration,omitempty"`
-	PubDate     string    `xml:"pubDate,omitempty"`
+	id          string
+	length      int
+	audioType   string
+	url         string
+	link        string
+	cover       string
+	title       string
+	description string
+	author      string
+	duration    int
+	publishDate string
 }
 
-type Enclosure struct {
-	URL    string `xml:"url,attr"`
-	Length int    `xml:"length,attr"`
-	Type   string `xml:"type,attr"`
+func NewEpisode(id, audioType, url, link, cover, title, description, author, publishDate string, length, duration int) Episode {
+	return Episode{id, length, audioType, url, link, cover, title, description, author, duration, publishDate}
 }
 
-// TODO: Get rid of xml attributes
-// TODO: Add init
+func (e Episode) ID() string { return e.id }

@@ -77,8 +77,9 @@ func (a *App) initTelegramListener(_ context.Context) error {
 	}
 
 	listener.RegisterCommands(
-		command.NewAddCommand(a.serviceProvider.SubscriptionUseCase()),
-		command.NewRemoveCommand(a.serviceProvider.SubscriptionUseCase()),
+		command.NewRegisterCommand(a.serviceProvider.UserUsecase()),
+		command.NewAddCommand(a.serviceProvider.SubscriptionUsecase()),
+		command.NewRemoveCommand(a.serviceProvider.SubscriptionUsecase()),
 	)
 
 	a.telegramListener = listener
@@ -95,7 +96,7 @@ func (a *App) initHTTPServer(_ context.Context) error {
 
 func (a *App) initUpdater(_ context.Context) error {
 	a.updater = updater.NewUpdater(
-		a.serviceProvider.SubscriptionUseCase(),
+		a.serviceProvider.SubscriptionUsecase(),
 		a.contentManager,
 		a.config.Feed.UpdateInterval,
 	)

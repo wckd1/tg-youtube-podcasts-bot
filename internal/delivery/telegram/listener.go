@@ -67,7 +67,7 @@ func (l TelegramListener) Start(ctx context.Context) error {
 
 			msg := l.transform(update.Message)
 			resp := l.commands.OnMessage(*msg)
-			if err := l.sendBotResponse(resp); err != nil {
+			if err := l.sendBotResponse(update.Message.Chat.ID, resp); err != nil {
 				log.Printf("[WARN] %+v", err)
 			}
 		}
@@ -83,12 +83,12 @@ func (l TelegramListener) transform(msg *tgbotapi.Message) *Message {
 	}
 }
 
-func (l TelegramListener) sendBotResponse(resp Response) error {
+func (l TelegramListener) sendBotResponse(chatID int64, resp Response) error {
 	if !resp.Send {
 		return nil
 	}
 
-	msg := tgbotapi.NewMessage(resp.ChatID, resp.Text)
+	msg := tgbotapi.NewMessage(chatID, resp.Text)
 
 	if _, err := l.botAPI.Send(msg); err != nil {
 		return errors.Join(ErrResponseSend, err)

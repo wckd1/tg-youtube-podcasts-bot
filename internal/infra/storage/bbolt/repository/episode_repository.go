@@ -28,6 +28,7 @@ type EpisodeRepository struct {
 func NewEpisodeRepository(store *bbolt.BBoltStore) episode.EpisodeRepository {
 	return &EpisodeRepository{store}
 }
+
 func (r *EpisodeRepository) CreateEpisode(e *episode.Episode) error {
 	return r.store.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(episodesBucketName))
@@ -36,7 +37,7 @@ func (r *EpisodeRepository) CreateEpisode(e *episode.Episode) error {
 		}
 
 		uuid := uuid.New().String()
-		e.UUID = uuid
+		// e.ID() = uuid
 
 		buf, err := json.Marshal(e)
 		if err != nil {

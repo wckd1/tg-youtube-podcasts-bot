@@ -7,20 +7,20 @@ import (
 )
 
 type remove struct {
-	subscriptionUsecase *subscription.SubscriptionUseCase
+	subscriptionUsecase *subscription.SubscriptionUsecase
 }
 
-func NewRemoveCommand(subUC *subscription.SubscriptionUseCase) telegram.Command {
+func NewRemoveCommand(subUC *subscription.SubscriptionUsecase) telegram.Command {
 	return remove{subscriptionUsecase: subUC}
 }
 
 // OnMessage return deleted subscription status
-func (a remove) OnMessage(msg telegram.Message) telegram.Response {
-	if !contains(a.ReactOn(), msg.Command) {
+func (r remove) OnMessage(msg telegram.Message) telegram.Response {
+	if !contains(r.ReactOn(), msg.Command) {
 		return telegram.Response{}
 	}
 
-	if err := a.subscriptionUsecase.RemoveSubscription(); err != nil {
+	if err := r.subscriptionUsecase.RemoveSubscription(); err != nil {
 		log.Printf("[ERROR] failed to remove subscription. %+v", err)
 		return telegram.Response{
 			Text: "Failed to remove subscription",
@@ -35,6 +35,6 @@ func (a remove) OnMessage(msg telegram.Message) telegram.Response {
 }
 
 // ReactOn keys
-func (a remove) ReactOn() []string {
+func (r remove) ReactOn() []string {
 	return []string{"remove"}
 }

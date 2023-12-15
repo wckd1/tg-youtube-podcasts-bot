@@ -10,7 +10,6 @@ type Message struct {
 
 // Response describes bot's answer on particular message
 type Response struct {
-	ChatID int64
-	Text   string
-	Send   bool
+	Text string
+	Send bool
 }
