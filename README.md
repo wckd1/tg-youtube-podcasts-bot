@@ -5,7 +5,7 @@ This is self-hosted service for extract audio from YouTube videos and build rss 
 It allows to subscribe to YouTube channels/playlists using Telegram bot and automatically get updates to feed.
 Also, single item can be added without subscription.
 
-The service uses [yt-dlp](https://github.com/yt-dlp/yt-dlp) to pull videos and [ffmpeg](https://www.ffmpeg.org/) for audio extraction.
+The service uses [yt-dlp](https://github.com/yt-dlp/yt-dlp) to pull videos.
 
 ## Bot commands
 

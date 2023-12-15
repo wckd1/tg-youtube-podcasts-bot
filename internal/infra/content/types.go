@@ -1,15 +1,5 @@
 package content
 
-import (
-	"context"
-	"time"
-)
-
-type ContentManager interface {
-	Get(ctx context.Context, url string) (dl Download, err error)
-	CheckUpdate(ctx context.Context, url string, date time.Time, filter string) (dls []Download, err error)
-}
-
 type FileInfo struct {
 	Link        string `json:"webpage_url"`
 	Title       string `json:"title"`
@@ -19,7 +9,7 @@ type FileInfo struct {
 	Length      int    `json:"filesize"`
 	Duration    int    `json:"duration"`
 	Date        string `json:"upload_date"`
-	Type        string
+	Type        string `json:"type"`
 }
 
 type Download struct {

@@ -6,8 +6,8 @@ import (
 	"log"
 	"sync"
 	"time"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/subscription"
-	"wckd1/tg-youtube-podcasts-bot/internal/infra/content"
 )
 
 var (
@@ -17,13 +17,13 @@ var (
 // Updater is a task runner that check for updates with given delay
 type Updater struct {
 	subscriptionUsecase *subscription.SubscriptionUsecase
-	contentManager      content.ContentManager
+	contentManager      episode.ContentManager
 	delay               time.Duration
 }
 
 func NewUpdater(
 	subUC *subscription.SubscriptionUsecase,
-	cm content.ContentManager,
+	cm episode.ContentManager,
 	delay time.Duration,
 ) Updater {
 	return Updater{subscriptionUsecase: subUC, contentManager: cm, delay: delay}

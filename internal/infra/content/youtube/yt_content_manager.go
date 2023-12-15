@@ -7,12 +7,15 @@ import (
 	"fmt"
 	"io"
 	"log"
+	neturl "net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"sync"
 	"time"
+	"wckd1/tg-youtube-podcasts-bot/internal/converter"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
 	"wckd1/tg-youtube-podcasts-bot/internal/infra/content"
 
 	"github.com/google/uuid"
@@ -20,7 +23,7 @@ import (
 
 var ErrNotAvailable = errors.New("yt-dlp not available")
 
-var _ content.ContentManager = (*youTubeContentManager)(nil)
+var _ episode.ContentManager = (*youTubeContentManager)(nil)
 
 const (
 	baseCmd    = "yt-dlp --skip-download --write-info-json --no-progress %s"
@@ -46,7 +49,8 @@ func NewYouTubeContentManager() (*youTubeContentManager, error) {
 	return &youTubeContentManager{}, nil
 }
 
-func (cm youTubeContentManager) Get(ctx context.Context, url string) (content.Download, error) {
+// TODO: Remove Download and build Episode
+func (cm youTubeContentManager) Get(ctx context.Context, id, url string) (episode.Episode, error) {
 	dl := content.Download{
 		URL:  url,
 		Info: content.FileInfo{},
@@ -56,7 +60,7 @@ func (cm youTubeContentManager) Get(ctx context.Context, url string) (content.Do
 	audio, err := getAudioLink(ctx, url)
 	if err != nil {
 		log.Printf("[ERROR] failed to get audio link: %v", err)
-		return content.Download{}, err
+		return episode.Episode{}, err
 	}
 	dl.URL = audio
 
@@ -64,14 +68,21 @@ func (cm youTubeContentManager) Get(ctx context.Context, url string) (content.Do
 	info, err := getInfo(ctx, url)
 	if err != nil {
 		log.Printf("[ERROR] failed to get info: %v", err)
-		return content.Download{}, err
+		return episode.Episode{}, err
 	}
 	dl.Info = info
 
-	return dl, nil
+	ep, err := converter.DownloadToEpisode(id, dl)
+	if err != nil {
+		log.Printf("[ERROR] failed to conver download: %v", err)
+		return episode.Episode{}, err
+	}
+
+	return ep, nil
 }
 
-func (cm youTubeContentManager) CheckUpdate(ctx context.Context, url string, date time.Time, filter string) (dls []content.Download, err error) {
+// TODO: Remove Download and build Episode
+func (cm youTubeContentManager) CheckUpdate(ctx context.Context, url string, date time.Time, filter string) (eps []episode.Episode, err error) {
 	id := uuid.New().String()
 
 	// Prepare yt-dlp command
@@ -99,7 +110,7 @@ func (cm youTubeContentManager) CheckUpdate(ctx context.Context, url string, dat
 		return
 	}
 
-	resps := make(chan content.Download)
+	resps := make(chan episode.Episode)
 	wg := sync.WaitGroup{}
 	wg.Add(len(dlFiles))
 
@@ -127,7 +138,25 @@ func (cm youTubeContentManager) CheckUpdate(ctx context.Context, url string, dat
 			}
 			dl.URL = audio
 
-			resps <- dl
+			// TODO: Check if id can be extracted from info
+			purl, err := neturl.Parse(dl.Info.Link)
+			if err != nil {
+				log.Printf("[ERROR] failed to get download id: %v", err)
+				return
+			}
+			episodeID := purl.Query().Get("v")
+			if episodeID == "" {
+				log.Printf("[ERROR] failed to get download id: no v argument")
+				return
+			}
+
+			ep, err := converter.DownloadToEpisode(episodeID, dl)
+			if err != nil {
+				log.Printf("[ERROR] failed to conver download: %v", err)
+				return
+			}
+
+			resps <- ep
 		}(fp)
 	}
 
@@ -137,7 +166,7 @@ func (cm youTubeContentManager) CheckUpdate(ctx context.Context, url string, dat
 	}()
 
 	for r := range resps {
-		dls = append(dls, r)
+		eps = append(eps, r)
 	}
 
 	return

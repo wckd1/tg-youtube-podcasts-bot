@@ -8,9 +8,10 @@ import (
 
 func UserToBinary(u *user.User) ([]byte, error) {
 	sData := map[string]interface{}{
-		"id":            u.ID(),
-		"playlists":     u.Playlists(),
-		"subscriptions": u.Subscriptions(),
+		"id":                u.ID(),
+		"playlists":         u.Playlists(),
+		"default_playlists": u.DefaultPlaylist(),
+		"subscriptions":     u.Subscriptions(),
 	}
 
 	return json.Marshal(sData)
@@ -25,6 +26,11 @@ func BinaryToUser(d []byte) (user.User, error) {
 	id, ok := uData["id"].(string)
 	if !ok {
 		return user.User{}, fmt.Errorf("missing or invalid ID field")
+	}
+
+	defaultPl, ok := uData["default_playlists"].(string)
+	if !ok {
+		return user.User{}, fmt.Errorf("missing or invalid Default Playlist field")
 	}
 
 	plInterface, ok := uData["playlists"]
@@ -57,5 +63,5 @@ func BinaryToUser(d []byte) (user.User, error) {
 		}
 	}
 
-	return user.NewUser(id, playlists, subscriptions), nil
+	return user.NewUser(id, defaultPl, playlists, subscriptions), nil
 }

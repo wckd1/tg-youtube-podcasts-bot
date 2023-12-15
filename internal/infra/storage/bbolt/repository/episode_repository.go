@@ -4,17 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"wckd1/tg-youtube-podcasts-bot/internal/converter"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
 	"wckd1/tg-youtube-podcasts-bot/internal/infra/storage/bbolt"
 
 	"github.com/google/uuid"
 	bolt "go.etcd.io/bbolt"
-)
-
-var (
-	ErrNoEpisodesBucket = errors.New("no saved episodes")
-	ErrEpisodeEncoding  = errors.New("can't encode episode")
-	ErrEpisodeDecoding  = errors.New("can't decode episode")
 )
 
 const episodesBucketName = "episodes"
@@ -48,13 +43,38 @@ func (r *EpisodeRepository) CreateEpisode(e *episode.Episode) error {
 	})
 }
 
+func (r *EpisodeRepository) GetEpisode(id string) (episode.Episode, error) {
+	var ep episode.Episode
+
+	err := r.store.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(episodesBucketName))
+		if b == nil {
+			return episode.ErrNoEpisodesStorage
+		}
+
+		epData := b.Get([]byte(id))
+		if epData == nil {
+			return episode.ErrEpisodeNotFound
+		}
+
+		decodedEpisode, err := converter.BinaryToEpisode(epData)
+		if err != nil {
+			return errors.Join(episode.ErrEpisodeDecoding, err)
+		}
+		ep = decodedEpisode
+		return nil
+	})
+
+	return ep, err
+}
+
 func (r *EpisodeRepository) GetEpisodes(limit int) ([]episode.Episode, error) {
 	var result []episode.Episode
 
 	err := r.store.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(episodesBucketName))
 		if b == nil {
-			return ErrNoEpisodesBucket
+			return episode.ErrNoEpisodesStorage
 		}
 
 		c := b.Cursor()

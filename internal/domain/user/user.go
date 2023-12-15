@@ -1,12 +1,13 @@
 package user
 
 type User struct {
-	id            string
-	playlists     []string
-	subscriptions []string
+	id              string
+	defaultPlaylist string
+	playlists       []string
+	subscriptions   []string
 }
 
-func NewUser(id string, playlists, subscriptions []string) User {
+func NewUser(id, defaultPlaylist string, playlists, subscriptions []string) User {
 	if playlists == nil {
 		playlists = make([]string, 0)
 	}
@@ -14,10 +15,15 @@ func NewUser(id string, playlists, subscriptions []string) User {
 		subscriptions = make([]string, 0)
 	}
 
-	return User{id, playlists, subscriptions}
+	return User{id, defaultPlaylist, playlists, subscriptions}
 }
 
 func (u User) ID() string { return u.id }
+
+func (u User) DefaultPlaylist() string { return u.defaultPlaylist }
+func (u *User) SetDefaultPlaylist(id string) {
+	u.defaultPlaylist = id
+}
 
 func (u User) Playlists() []string { return u.playlists }
 func (u *User) AddPlaylist(id string) {

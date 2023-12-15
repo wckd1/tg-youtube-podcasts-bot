@@ -2,12 +2,14 @@ package app
 
 import (
 	"context"
+	"log"
 	"wckd1/tg-youtube-podcasts-bot/configs"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/playlist"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/rss"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/subscription"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/user"
+	"wckd1/tg-youtube-podcasts-bot/internal/infra/content/youtube"
 	"wckd1/tg-youtube-podcasts-bot/internal/infra/storage/bbolt"
 	"wckd1/tg-youtube-podcasts-bot/internal/infra/storage/bbolt/repository"
 )
@@ -15,7 +17,9 @@ import (
 type serviceProvider struct {
 	ctx    context.Context
 	config configs.Config
-	store  *bbolt.BBoltStore
+
+	store          *bbolt.BBoltStore
+	contentManager episode.ContentManager
 
 	// User
 	userRepository user.UserRepository
@@ -48,6 +52,18 @@ func (s *serviceProvider) Store() *bbolt.BBoltStore {
 		s.store = bbolt.NewStore(s.ctx)
 	}
 	return s.store
+}
+
+func (s *serviceProvider) ContentManager() episode.ContentManager {
+	if s.contentManager == nil {
+		cm, err := youtube.NewYouTubeContentManager()
+		if err != nil {
+			log.Fatalf("[ERROR] can't init YouTubeContentManager, %+v", err)
+		}
+		s.contentManager = cm
+	}
+
+	return s.contentManager
 }
 
 // User
@@ -101,7 +117,12 @@ func (s *serviceProvider) EpisodeRepository() episode.EpisodeRepository {
 }
 func (s *serviceProvider) EpisodeUsecase() *episode.EpisodeUsecase {
 	if s.episodeUsecase == nil {
-		s.episodeUsecase = episode.NewEpisodeUsecase(s.EpisodeRepository())
+		s.episodeUsecase = episode.NewEpisodeUsecase(
+			s.EpisodeRepository(),
+			s.UserRepository(),
+			s.PlaylistRepository(),
+			s.ContentManager(),
+		)
 	}
 
 	return s.episodeUsecase

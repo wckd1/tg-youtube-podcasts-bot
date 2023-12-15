@@ -11,13 +11,6 @@ import (
 
 const usersBucketName = "users"
 
-var (
-	ErrNoUsersBucket = errors.New("no saved users")
-	ErrUserNotFound  = errors.New("user not found")
-	ErrUserEncoding  = errors.New("can't encode user")
-	ErrUserDecoding  = errors.New("can't decode user")
-)
-
 var _ user.UserRepository = (*UserRepository)(nil)
 
 type UserRepository struct {
@@ -29,42 +22,42 @@ func NewUserRepository(store *bbolt.BBoltStore) user.UserRepository {
 }
 
 func (r UserRepository) GetUser(id string) (user.User, error) {
-	var user user.User
+	var u user.User
 
 	err := r.store.View(func(tx *bolt.Tx) error {
-		usersBucket := tx.Bucket([]byte(usersBucketName))
-		if usersBucket == nil {
-			return ErrNoUsersBucket
+		b := tx.Bucket([]byte(usersBucketName))
+		if b == nil {
+			return user.ErrNoUsersStorage
 		}
 
-		userData := usersBucket.Get([]byte(id))
+		userData := b.Get([]byte(id))
 		if userData == nil {
-			return ErrUserNotFound
+			return user.ErrUserNotFound
 		}
 
-		u, err := converter.BinaryToUser(userData)
+		decodedUsed, err := converter.BinaryToUser(userData)
 		if err != nil {
-			return errors.Join(ErrUserDecoding, err)
+			return errors.Join(user.ErrUserDecoding, err)
 		}
-		user = u
+		u = decodedUsed
 		return nil
 	})
 
-	return user, err
+	return u, err
 }
 
-func (r UserRepository) CreateUser(user *user.User) error {
+func (r UserRepository) SaveUser(u *user.User) error {
 	return r.store.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(usersBucketName))
 		if err != nil {
 			return err
 		}
 
-		subData, err := converter.UserToBinary(user)
+		subData, err := converter.UserToBinary(u)
 		if err != nil {
-			return errors.Join(ErrUserEncoding, err)
+			return errors.Join(user.ErrUserEncoding, err)
 		}
-		return b.Put([]byte(user.ID()), subData)
+		return b.Put([]byte(u.ID()), subData)
 	})
 }
 
@@ -72,7 +65,7 @@ func (r UserRepository) DeleteUser(id string) error {
 	return r.store.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(usersBucketName))
 		if b == nil {
-			return ErrNoUsersBucket
+			return user.ErrNoUsersStorage
 		}
 
 		return b.Delete([]byte(id))

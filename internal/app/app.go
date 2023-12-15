@@ -7,8 +7,6 @@ import (
 	"wckd1/tg-youtube-podcasts-bot/internal/delivery/httpapi"
 	"wckd1/tg-youtube-podcasts-bot/internal/delivery/telegram"
 	"wckd1/tg-youtube-podcasts-bot/internal/delivery/telegram/command"
-	"wckd1/tg-youtube-podcasts-bot/internal/infra/content"
-	"wckd1/tg-youtube-podcasts-bot/internal/infra/content/youtube"
 	"wckd1/tg-youtube-podcasts-bot/internal/infra/updater"
 )
 
@@ -20,7 +18,6 @@ type App struct {
 	telegramListener *telegram.TelegramListener
 	httpServer       *httpapi.HTTPServer
 	updater          updater.Updater
-	contentManager   content.ContentManager
 }
 
 func NewApp(ctx context.Context, config configs.Config) (*App, error) {
@@ -34,7 +31,6 @@ func NewApp(ctx context.Context, config configs.Config) (*App, error) {
 		a.initTelegramListener,
 		a.initHTTPServer,
 		a.initUpdater,
-		a.initContentManager,
 	}
 	for _, f := range inits {
 		err := f(ctx)
@@ -78,7 +74,7 @@ func (a *App) initTelegramListener(_ context.Context) error {
 
 	listener.RegisterCommands(
 		command.NewRegisterCommand(a.serviceProvider.UserUsecase()),
-		command.NewAddCommand(a.serviceProvider.SubscriptionUsecase()),
+		command.NewAddCommand(a.serviceProvider.EpisodeUsecase(), a.serviceProvider.SubscriptionUsecase()),
 		command.NewRemoveCommand(a.serviceProvider.SubscriptionUsecase()),
 	)
 
@@ -97,18 +93,8 @@ func (a *App) initHTTPServer(_ context.Context) error {
 func (a *App) initUpdater(_ context.Context) error {
 	a.updater = updater.NewUpdater(
 		a.serviceProvider.SubscriptionUsecase(),
-		a.contentManager,
+		a.serviceProvider.ContentManager(),
 		a.config.Feed.UpdateInterval,
 	)
-	return nil
-}
-
-func (a *App) initContentManager(_ context.Context) error {
-	cm, err := youtube.NewYouTubeContentManager()
-	if err != nil {
-		return err
-	}
-
-	a.contentManager = cm
 	return nil
 }

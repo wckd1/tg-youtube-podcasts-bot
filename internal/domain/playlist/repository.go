@@ -1,5 +1,16 @@
 package playlist
 
+import "errors"
+
+var (
+	ErrNoPlaylistsStorage = errors.New("no saved playlists")
+	ErrPlaylistNotFound   = errors.New("playlist not found")
+	ErrPlaylistEncoding   = errors.New("can't encode playlist")
+	ErrPlaylistDecoding   = errors.New("can't decode playlist")
+)
+
 type PlaylistRepository interface {
-	CreatePlaylist(*Playlist) error
+	SavePlaylist(playlist *Playlist) error
+	GetPlaylist(id string) (Playlist, error)
+	DeletePlaylist(id string) error
 }
