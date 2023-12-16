@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/service"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/subscription"
 	"wckd1/tg-youtube-podcasts-bot/internal/infra/content"
 
@@ -22,7 +23,7 @@ import (
 
 var ErrNotAvailable = errors.New("yt-dlp not available")
 
-var _ episode.ContentManager = (*youTubeContentManager)(nil)
+var _ service.ContentManager = (*youTubeContentManager)(nil)
 
 const (
 	baseCmd    = "yt-dlp --skip-download --write-info-json --extractor-args \"youtube:skip=hls,dash,translated_subs\" --extractor-args \"youtube:player_client=web\" --no-progress %s"

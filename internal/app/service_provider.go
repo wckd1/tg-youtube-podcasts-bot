@@ -7,7 +7,9 @@ import (
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/playlist"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/rss"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/service"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/subscription"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/usecase"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/user"
 	"wckd1/tg-youtube-podcasts-bot/internal/infra/content/youtube"
 	"wckd1/tg-youtube-podcasts-bot/internal/infra/storage/bbolt"
@@ -17,27 +19,22 @@ import (
 type serviceProvider struct {
 	ctx    context.Context
 	config configs.Config
+	store  *bbolt.BBoltStore
 
-	store          *bbolt.BBoltStore
-	contentManager episode.ContentManager
-
-	// User
-	userRepository user.UserRepository
-	userUsecase    *user.UserUsecase
-
-	// Playlist
-	playlistRepository playlist.PlaylistRepository
-
-	// Subscription
+	// Repositories
+	userRepository         user.UserRepository
+	playlistRepository     playlist.PlaylistRepository
 	subscriptionRepository subscription.SubscriptionRepository
-	subscriptionUsecase    *subscription.SubscriptionUsecase
+	episodeRepository      episode.EpisodeRepository
 
-	// Episode
-	episodeRepository episode.EpisodeRepository
-	episodeUsecase    *episode.EpisodeUsecase
+	// Services
+	contentManager service.ContentManager
 
-	// RSS
-	rssUseCase *rss.RSSUseCase
+	// Usecases
+	registerUsecase *usecase.RegisterUsecase
+	updateUsecase   *usecase.UpdateUsecase
+	addUsecase      *usecase.AddUsecase
+	rssUseCase      *rss.RSSUseCase
 }
 
 func newServiceProvider(ctx context.Context, config configs.Config) *serviceProvider {
@@ -54,7 +51,41 @@ func (s *serviceProvider) Store() *bbolt.BBoltStore {
 	return s.store
 }
 
-func (s *serviceProvider) ContentManager() episode.ContentManager {
+// Repositories
+func (s *serviceProvider) UserRepository() user.UserRepository {
+	if s.userRepository == nil {
+		s.userRepository = repository.NewUserRepository(s.Store())
+	}
+
+	return s.userRepository
+}
+
+func (s *serviceProvider) PlaylistRepository() playlist.PlaylistRepository {
+	if s.playlistRepository == nil {
+		s.playlistRepository = repository.NewPlaylistRepository(s.Store())
+	}
+
+	return s.playlistRepository
+}
+
+func (s *serviceProvider) SubscriptionRepository() subscription.SubscriptionRepository {
+	if s.subscriptionRepository == nil {
+		s.subscriptionRepository = repository.NewSubscriptionRepository(s.Store())
+	}
+
+	return s.subscriptionRepository
+}
+
+func (s *serviceProvider) EpisodeRepository() episode.EpisodeRepository {
+	if s.episodeRepository == nil {
+		s.episodeRepository = repository.NewEpisodeRepository(s.Store())
+	}
+
+	return s.episodeRepository
+}
+
+// Services
+func (s *serviceProvider) ContentManager() service.ContentManager {
 	if s.contentManager == nil {
 		cm, err := youtube.NewYouTubeContentManager()
 		if err != nil {
@@ -66,69 +97,42 @@ func (s *serviceProvider) ContentManager() episode.ContentManager {
 	return s.contentManager
 }
 
-// User
-func (s *serviceProvider) UserRepository() user.UserRepository {
-	if s.userRepository == nil {
-		s.userRepository = repository.NewUserRepository(s.Store())
+// Usecases
+func (s *serviceProvider) RegisterUsecase() *usecase.RegisterUsecase {
+	if s.registerUsecase == nil {
+		s.registerUsecase = usecase.NewRegisterUsecase(s.UserRepository(), s.PlaylistRepository())
 	}
 
-	return s.userRepository
-}
-func (s *serviceProvider) UserUsecase() *user.UserUsecase {
-	if s.userUsecase == nil {
-		s.userUsecase = user.NewUserUsecase(s.UserRepository(), s.PlaylistRepository())
-	}
-
-	return s.userUsecase
+	return s.registerUsecase
 }
 
-// Playlist
-func (s *serviceProvider) PlaylistRepository() playlist.PlaylistRepository {
-	if s.playlistRepository == nil {
-		s.playlistRepository = repository.NewPlaylistRepository(s.Store())
-	}
-
-	return s.playlistRepository
-}
-
-// Subscription
-func (s *serviceProvider) SubscriptionRepository() subscription.SubscriptionRepository {
-	if s.subscriptionRepository == nil {
-		s.subscriptionRepository = repository.NewSubscriptionRepository(s.Store())
-	}
-
-	return s.subscriptionRepository
-}
-func (s *serviceProvider) SubscriptionUsecase() *subscription.SubscriptionUsecase {
-	if s.subscriptionUsecase == nil {
-		s.subscriptionUsecase = subscription.NewSubscriptionUsecase(s.SubscriptionRepository(), s.UserRepository())
-	}
-
-	return s.subscriptionUsecase
-}
-
-// Episode
-func (s *serviceProvider) EpisodeRepository() episode.EpisodeRepository {
-	if s.episodeRepository == nil {
-		s.episodeRepository = repository.NewEpisodeRepository(s.Store())
-	}
-
-	return s.episodeRepository
-}
-func (s *serviceProvider) EpisodeUsecase() *episode.EpisodeUsecase {
-	if s.episodeUsecase == nil {
-		s.episodeUsecase = episode.NewEpisodeUsecase(
-			s.EpisodeRepository(),
+func (s *serviceProvider) UpdateUsecase() *usecase.UpdateUsecase {
+	if s.updateUsecase == nil {
+		s.updateUsecase = usecase.NewUpdateUsecase(
 			s.UserRepository(),
 			s.PlaylistRepository(),
+			s.EpisodeRepository(),
+			s.SubscriptionRepository(),
+		)
+	}
+
+	return s.updateUsecase
+}
+
+func (s *serviceProvider) AddUsecase() *usecase.AddUsecase {
+	if s.addUsecase == nil {
+		s.addUsecase = usecase.NewAddUsecase(
+			s.UserRepository(),
+			s.PlaylistRepository(),
+			s.EpisodeRepository(),
+			s.SubscriptionRepository(),
 			s.ContentManager(),
 		)
 	}
 
-	return s.episodeUsecase
+	return s.addUsecase
 }
 
-// RSS
 func (s *serviceProvider) RSSUseCase() *rss.RSSUseCase {
 	if s.rssUseCase == nil {
 		s.rssUseCase = rss.NewRSSUseCase()

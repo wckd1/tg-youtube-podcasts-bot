@@ -1,18 +1,19 @@
 package command
 
 import (
+	"errors"
 	"log"
 	"strconv"
 	"wckd1/tg-youtube-podcasts-bot/internal/delivery/telegram"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/user"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/usecase"
 )
 
 type register struct {
-	userUsecase *user.UserUsecase
+	registerUsecase *usecase.RegisterUsecase
 }
 
-func NewRegisterCommand(uUC *user.UserUsecase) telegram.Command {
-	return register{userUsecase: uUC}
+func NewRegisterCommand(registerUsecase *usecase.RegisterUsecase) telegram.Command {
+	return register{registerUsecase}
 }
 
 // OnMessage return new subscription status
@@ -22,21 +23,24 @@ func (r register) OnMessage(msg telegram.Message) telegram.Response {
 	}
 
 	id := strconv.Itoa(int(msg.ChatID))
-	if err := r.userUsecase.RegisterUser(id); err != nil {
+	if err := r.registerUsecase.RegisterUser(id); err != nil {
 		log.Printf("[ERROR] failed to register user. %+v", err)
-		text := "Failed to register user"
-		if err.Error() == user.ErrUserRegistered.Error() {
-			text = text + ": already registered"
+
+		if errors.Is(err, usecase.ErrUserExist) {
+			return telegram.Response{
+				Text: "You are already registered",
+				Send: true,
+			}
 		}
 
 		return telegram.Response{
-			Text: text,
+			Text: "Registration failed",
 			Send: true,
 		}
 	}
 
 	return telegram.Response{
-		Text: "You are registered",
+		Text: "Succesfully registered",
 		Send: true,
 	}
 }

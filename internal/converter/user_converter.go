@@ -9,9 +9,8 @@ import (
 func UserToBinary(u *user.User) ([]byte, error) {
 	sData := map[string]interface{}{
 		"id":                u.ID(),
-		"playlists":         u.Playlists(),
 		"default_playlists": u.DefaultPlaylist(),
-		"subscriptions":     u.Subscriptions(),
+		"playlists":         u.Playlists(),
 	}
 
 	return json.Marshal(sData)
@@ -48,20 +47,5 @@ func BinaryToUser(d []byte) (user.User, error) {
 		}
 	}
 
-	subInterface, ok := uData["subscriptions"]
-	if !ok {
-		return user.User{}, fmt.Errorf("missing Subscriptions field")
-	}
-	var subscriptions []string
-	if subSlice, ok := subInterface.([]interface{}); ok {
-		for _, item := range subSlice {
-			if str, isString := item.(string); isString {
-				subscriptions = append(subscriptions, str)
-			} else {
-				return user.User{}, fmt.Errorf("invalid Subscriptions field")
-			}
-		}
-	}
-
-	return user.NewUser(id, defaultPl, playlists, subscriptions), nil
+	return user.NewUser(id, defaultPl, playlists), nil
 }

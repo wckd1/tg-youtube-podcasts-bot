@@ -4,18 +4,14 @@ type User struct {
 	id              string
 	defaultPlaylist string
 	playlists       []string
-	subscriptions   []string
 }
 
-func NewUser(id, defaultPlaylist string, playlists, subscriptions []string) User {
+func NewUser(id, defaultPlaylist string, playlists []string) User {
 	if playlists == nil {
 		playlists = make([]string, 0)
 	}
-	if subscriptions == nil {
-		subscriptions = make([]string, 0)
-	}
 
-	return User{id, defaultPlaylist, playlists, subscriptions}
+	return User{id, defaultPlaylist, playlists}
 }
 
 func (u User) ID() string { return u.id }
@@ -28,9 +24,4 @@ func (u *User) SetDefaultPlaylist(id string) {
 func (u User) Playlists() []string { return u.playlists }
 func (u *User) AddPlaylist(id string) {
 	u.playlists = append(u.playlists, id)
-}
-
-func (u User) Subscriptions() []string { return u.subscriptions }
-func (u *User) AddSubscription(id string) {
-	u.subscriptions = append(u.subscriptions, id)
 }

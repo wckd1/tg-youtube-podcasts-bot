@@ -8,9 +8,10 @@ import (
 
 func PlaylistToBinary(p *playlist.Playlist) ([]byte, error) {
 	sData := map[string]interface{}{
-		"id":       p.ID(),
-		"name":     p.Name(),
-		"episodes": p.Episodes(),
+		"id":            p.ID(),
+		"name":          p.Name(),
+		"episodes":      p.Episodes(),
+		"subscriptions": p.Subscriptions(),
 	}
 
 	return json.Marshal(sData)
@@ -47,5 +48,20 @@ func BinaryToPlaylist(d []byte) (playlist.Playlist, error) {
 		}
 	}
 
-	return playlist.NewPlaylist(id, name, episodes), nil
+	subInterface, ok := plData["subscriptions"]
+	if !ok {
+		return playlist.Playlist{}, fmt.Errorf("missing Subscriptions field")
+	}
+	var subscriptions []string
+	if subSlice, ok := subInterface.([]interface{}); ok {
+		for _, item := range subSlice {
+			if str, isString := item.(string); isString {
+				subscriptions = append(subscriptions, str)
+			} else {
+				return playlist.Playlist{}, fmt.Errorf("invalid Subscriptions field")
+			}
+		}
+	}
+
+	return playlist.NewPlaylist(id, name, episodes, subscriptions), nil
 }

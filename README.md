@@ -63,6 +63,7 @@ Add config.yml file following the example of [example-config.yml](https://github
 - Add multi-user support
 - Add manually created playlists
 - Add fetch old episodes on subscribe
-- Add tests
 - Optimize yt-dlp commands
+- Add godoc comments
+- Add tests
 - Replace text commands with custom keyboard

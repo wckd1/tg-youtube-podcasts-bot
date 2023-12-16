@@ -7,7 +7,9 @@ import (
 	"sync"
 	"time"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/service"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/subscription"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/usecase"
 )
 
 var (
@@ -16,19 +18,17 @@ var (
 
 // Updater is a task runner that check for updates with given delay
 type Updater struct {
-	subscriptionUsecase *subscription.SubscriptionUsecase
-	episodeUsecase      *episode.EpisodeUsecase
-	contentManager      episode.ContentManager
-	delay               time.Duration
+	updateUsecase  *usecase.UpdateUsecase
+	contentManager service.ContentManager
+	delay          time.Duration
 }
 
 func NewUpdater(
-	subUC *subscription.SubscriptionUsecase,
-	epUC *episode.EpisodeUsecase,
-	cm episode.ContentManager,
+	updateUsecase *usecase.UpdateUsecase,
+	contentManager service.ContentManager,
 	delay time.Duration,
 ) Updater {
-	return Updater{subscriptionUsecase: subUC, episodeUsecase: epUC, contentManager: cm, delay: delay}
+	return Updater{updateUsecase, contentManager, delay}
 }
 
 func (u Updater) Start(ctx context.Context) {
@@ -53,7 +53,7 @@ func (u Updater) Start(ctx context.Context) {
 }
 
 func (u Updater) checkForUpdates(ctx context.Context) {
-	subs, err := u.subscriptionUsecase.GetPendingSubscriptions()
+	subs, err := u.updateUsecase.GetPendingSubscriptions()
 	if err != nil {
 		log.Printf("[WARN] updates check skipped, %+v", err)
 		return
@@ -77,8 +77,7 @@ func (u Updater) checkForUpdates(ctx context.Context) {
 				go func(e episode.Episode) {
 					defer wg.Done()
 
-					// TODO: Update bounded playlists
-					if err = u.episodeUsecase.SaveEpisode(&e); err != nil {
+					if err = u.updateUsecase.SaveEpisode(&e); err != nil {
 						log.Printf("[ERROR] failed to add episode, %v", err)
 						return
 					}
@@ -86,7 +85,7 @@ func (u Updater) checkForUpdates(ctx context.Context) {
 			}
 
 			s.SetLastUpdated(time.Now())
-			if err := u.subscriptionUsecase.SaveSubsctiption(&s); err != nil {
+			if err := u.updateUsecase.SaveSubsctiption(&s); err != nil {
 				log.Printf("[WARN] failed to update time, %v", err)
 			}
 

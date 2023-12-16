@@ -8,8 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"wckd1/tg-youtube-podcasts-bot/internal/delivery/telegram"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/subscription"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/usecase"
 
 	"mvdan.cc/xurls/v2"
 )
@@ -22,12 +21,11 @@ var (
 )
 
 type add struct {
-	episodeUsecase      *episode.EpisodeUsecase
-	subscriptionUsecase *subscription.SubscriptionUsecase
+	addUsecase *usecase.AddUsecase
 }
 
-func NewAddCommand(eUC *episode.EpisodeUsecase, subUC *subscription.SubscriptionUsecase) telegram.Command {
-	return add{episodeUsecase: eUC, subscriptionUsecase: subUC}
+func NewAddCommand(addUsecase *usecase.AddUsecase) telegram.Command {
+	return add{addUsecase}
 }
 
 // OnMessage return new subscription status
@@ -49,7 +47,7 @@ func (a add) OnMessage(msg telegram.Message) telegram.Response {
 
 	// Sigle episode handle
 	if item.isEpisode {
-		if err := a.episodeUsecase.AddEpisode(userID, item.id, item.url); err != nil {
+		if err := a.addUsecase.AddEpisode(userID, item.id, item.url); err != nil {
 			log.Printf("[ERROR] failed to add episode. %+v", err)
 			return telegram.Response{
 				Text: "Failed to add episode",
@@ -64,7 +62,7 @@ func (a add) OnMessage(msg telegram.Message) telegram.Response {
 	}
 
 	// Or subscription handle
-	if err := a.subscriptionUsecase.CreateSubscription(userID, item.id, item.url, item.filter); err != nil {
+	if err := a.addUsecase.CreateSubscription(userID, item.id, item.url, item.filter); err != nil {
 		log.Printf("[ERROR] failed to add subscription. %+v", err)
 		return telegram.Response{
 			Text: "Failed to add subscription",
