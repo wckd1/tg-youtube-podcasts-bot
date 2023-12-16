@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 	"wckd1/tg-youtube-podcasts-bot/configs"
 	"wckd1/tg-youtube-podcasts-bot/internal/app"
 )
@@ -30,14 +31,18 @@ func main() {
 	a.Run()
 
 	<-quit
-	log.Println("[INFO] Shutting app down...")
+	log.Println("[INFO] shutting app down...")
 	cancel()
 
-	<-ctx.Done()
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer shutdownCancel()
 
-	// shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	// defer shutdownCancel()
-	// // Do finishing stuff
+	// Do finishing stuff
+	if err := a.Shutdown(shutdownCtx); err != nil {
+		log.Printf("[INFO] failed to shut down app, %+v", err)
+	}
 
-	log.Println("[INFO] Server gracefully shut down")
+	<-shutdownCtx.Done()
+
+	log.Println("[INFO] app shutted down")
 }

@@ -20,6 +20,7 @@ var (
 type Updater struct {
 	updateUsecase  *usecase.UpdateUsecase
 	contentManager service.ContentManager
+	ticker         time.Ticker
 	delay          time.Duration
 }
 
@@ -28,28 +29,23 @@ func NewUpdater(
 	contentManager service.ContentManager,
 	delay time.Duration,
 ) Updater {
-	return Updater{updateUsecase, contentManager, delay}
+	ticker := time.NewTicker(delay)
+	return Updater{updateUsecase, contentManager, *ticker, delay}
 }
 
 func (u Updater) Start(ctx context.Context) {
 	log.Printf("[INFO] check for updates on startup")
 	u.checkForUpdates(ctx)
 
-	log.Printf("[INFO] starting updater with %v interval", u.delay)
-	ticker := time.NewTicker(u.delay)
-	defer ticker.Stop()
-
-	for {
-		select {
-		case <-ticker.C:
-			log.Printf("[INFO] checking for updates...")
-			u.checkForUpdates(ctx)
-
-		case <-ctx.Done():
-			log.Printf("[INFO] context closed, %v", ctx.Err())
-			return
-		}
+	for range u.ticker.C {
+		log.Printf("[INFO] checking for updates...")
+		u.checkForUpdates(ctx)
 	}
+}
+
+func (u Updater) Shutdown() {
+	u.ticker.Stop()
+	log.Println("[INFO] updater stopped")
 }
 
 func (u Updater) checkForUpdates(ctx context.Context) {

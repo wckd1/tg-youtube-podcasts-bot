@@ -34,16 +34,15 @@ func NewServer(port string) *HTTPServer {
 }
 
 func (s *HTTPServer) Start(ctx context.Context) error {
-	go func() {
-		<-ctx.Done()
-		log.Printf("[INFO] stopping http server...")
-		if s.server != nil {
-			if err := s.server.Close(); err != nil {
-				log.Printf("[ERROR] failed to close http server, %+v", err)
-			}
-		}
-	}()
-
 	log.Printf("[INFO] starting server at %v...\n", s.port)
 	return s.server.ListenAndServe()
+}
+
+func (s HTTPServer) Shutdown(ctx context.Context) error {
+	if err := s.server.Shutdown(ctx); err != nil {
+		return err
+	}
+
+	log.Printf("[INFO] http server stopped")
+	return nil
 }

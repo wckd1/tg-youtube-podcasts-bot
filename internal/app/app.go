@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"log"
+	"net/http"
 	"wckd1/tg-youtube-podcasts-bot/configs"
 	"wckd1/tg-youtube-podcasts-bot/internal/delivery/httpapi"
 	"wckd1/tg-youtube-podcasts-bot/internal/delivery/telegram"
@@ -43,19 +44,20 @@ func NewApp(ctx context.Context, config configs.Config) (*App, error) {
 }
 
 func (a App) Run() {
-	go func() {
-		if err := a.telegramListener.Start(a.ctx); err != nil && err != context.Canceled {
-			log.Fatalf("[ERROR] can't start telegram listener: %+v", err)
-		}
-	}()
+	go a.telegramListener.Start()
+	go a.updater.Start(a.ctx)
 
 	go func() {
-		if err := a.httpServer.Start(a.ctx); err != nil && err != context.Canceled {
+		if err := a.httpServer.Start(a.ctx); err != nil && err != context.Canceled && err != http.ErrServerClosed {
 			log.Fatalf("[ERROR] can't start api server: %+v", err)
 		}
 	}()
+}
 
-	go a.updater.Start(a.ctx)
+func (a App) Shutdown(ctx context.Context) error {
+	a.telegramListener.Shutdown()
+	a.updater.Shutdown()
+	return a.httpServer.Shutdown(ctx)
 }
 
 func (a *App) initServiceProvider(_ context.Context) error {
