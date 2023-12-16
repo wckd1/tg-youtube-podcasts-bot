@@ -38,9 +38,6 @@ Filter string can be added to subscription to get only specified updates
 /add https://youtube.com/c/{id} {some title entry}
 ```
 
-### `remove`
-Removes specified subscription. Same syntax as fo adding subscription.
-
 ## API
 Servise expose only one endpoint for adding feed to Podcasts app.
 
@@ -58,7 +55,6 @@ Add config.yml file following the example of [example-config.yml](https://github
     - `debug_mode` - enable extended logging for debug mode (True/False)
 
 ## TODO
-- Add multi-user support
 - Add manually created playlists
 - Add fetch old episodes on subscribe
 - Optimize yt-dlp commands
