@@ -30,18 +30,19 @@ func NewEpisodeUsecase(
 func (uc EpisodeUsecase) AddEpisode(userID, id, url string) error {
 	// Get episode if already exist
 	ep, err := uc.episodeRepository.GetEpisode(id)
+
 	if err != nil {
 		// Create episode if not exist
 		if errors.Is(err, ErrEpisodeNotFound) || errors.Is(err, ErrNoEpisodesStorage) {
 			// Content manager get episode
 			ctx := context.Background()
-			ep, err := uc.contentManager.Get(ctx, id, url)
+			ep, err := uc.contentManager.Get(ctx, url)
 			if err != nil {
 				return errors.Join(ErrEpisodeCreate, err)
 			}
 
 			// Save episode to database
-			err = uc.episodeRepository.CreateEpisode(&ep)
+			err = uc.episodeRepository.SaveEpisode(&ep)
 			if err != nil {
 				return errors.Join(ErrEpisodeCreate, err)
 			}
@@ -49,6 +50,8 @@ func (uc EpisodeUsecase) AddEpisode(userID, id, url string) error {
 			return errors.Join(ErrEpisodeCreate, err)
 		}
 	}
+
+	// TODO: Check if episode is already in playlist
 
 	// Get user's default playlist
 	user, err := uc.userRepository.GetUser(userID)

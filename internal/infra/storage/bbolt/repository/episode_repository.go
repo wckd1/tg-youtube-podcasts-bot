@@ -8,7 +8,6 @@ import (
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
 	"wckd1/tg-youtube-podcasts-bot/internal/infra/storage/bbolt"
 
-	"github.com/google/uuid"
 	bolt "go.etcd.io/bbolt"
 )
 
@@ -24,22 +23,19 @@ func NewEpisodeRepository(store *bbolt.BBoltStore) episode.EpisodeRepository {
 	return &EpisodeRepository{store}
 }
 
-func (r *EpisodeRepository) CreateEpisode(e *episode.Episode) error {
+func (r *EpisodeRepository) SaveEpisode(ep *episode.Episode) error {
 	return r.store.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(episodesBucketName))
 		if err != nil {
 			return err
 		}
 
-		uuid := uuid.New().String()
-		// e.ID() = uuid
-
-		buf, err := json.Marshal(e)
+		epData, err := converter.EpisodeToBinary(ep)
 		if err != nil {
-			return err
+			return errors.Join(episode.ErrEpisodeEncoding, err)
 		}
 
-		return b.Put([]byte(uuid), buf)
+		return b.Put([]byte(ep.ID()), epData)
 	})
 }
 

@@ -7,14 +7,12 @@ import (
 	"fmt"
 	"io"
 	"log"
-	neturl "net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"sync"
 	"time"
-	"wckd1/tg-youtube-podcasts-bot/internal/converter"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
 	"wckd1/tg-youtube-podcasts-bot/internal/infra/content"
 
@@ -30,8 +28,6 @@ const (
 	loadArgs   = "-o %s.tmp"
 	updateArgs = "--no-write-playlist-metafiles --playlist-end 10 --dateafter %s -P \"%s\""
 	filterArgs = "--match-filters title~='%s'"
-
-	audioCmd = "yt-dlp --get-url -f 140 %s"
 
 	dlPath  = "./storage/downloads/"
 	infoExt = ".info.json"
@@ -49,39 +45,16 @@ func NewYouTubeContentManager() (*youTubeContentManager, error) {
 	return &youTubeContentManager{}, nil
 }
 
-// TODO: Remove Download and build Episode
-func (cm youTubeContentManager) Get(ctx context.Context, id, url string) (episode.Episode, error) {
-	dl := content.Download{
-		URL:  url,
-		Info: content.FileInfo{},
-	}
-
-	// Get link
-	audio, err := getAudioLink(ctx, url)
-	if err != nil {
-		log.Printf("[ERROR] failed to get audio link: %v", err)
-		return episode.Episode{}, err
-	}
-	dl.URL = audio
-
-	// Get metadata
+func (cm youTubeContentManager) Get(ctx context.Context, url string) (episode.Episode, error) {
 	info, err := getInfo(ctx, url)
 	if err != nil {
 		log.Printf("[ERROR] failed to get info: %v", err)
 		return episode.Episode{}, err
 	}
-	dl.Info = info
 
-	ep, err := converter.DownloadToEpisode(id, dl)
-	if err != nil {
-		log.Printf("[ERROR] failed to conver download: %v", err)
-		return episode.Episode{}, err
-	}
-
-	return ep, nil
+	return infoToEpisode(info)
 }
 
-// TODO: Remove Download and build Episode
 func (cm youTubeContentManager) CheckUpdate(ctx context.Context, url string, date time.Time, filter string) (eps []episode.Episode, err error) {
 	id := uuid.New().String()
 
@@ -118,41 +91,15 @@ func (cm youTubeContentManager) CheckUpdate(ctx context.Context, url string, dat
 		go func(path string) {
 			defer wg.Done()
 
-			dl := content.Download{
-				URL:  url,
-				Info: content.FileInfo{},
-			}
-
 			// Get metadata
 			info, err := parseInfo(path)
 			if err != nil {
 				return
 			}
-			dl.Info = info
 
-			// Get link
-			audio, err := getAudioLink(ctx, info.Link)
+			ep, err := infoToEpisode(info)
 			if err != nil {
-				log.Printf("[ERROR] failed to get audio link: %v", err)
-				return
-			}
-			dl.URL = audio
-
-			// TODO: Check if id can be extracted from info
-			purl, err := neturl.Parse(dl.Info.Link)
-			if err != nil {
-				log.Printf("[ERROR] failed to get download id: %v", err)
-				return
-			}
-			episodeID := purl.Query().Get("v")
-			if episodeID == "" {
-				log.Printf("[ERROR] failed to get download id: no v argument")
-				return
-			}
-
-			ep, err := converter.DownloadToEpisode(episodeID, dl)
-			if err != nil {
-				log.Printf("[ERROR] failed to conver download: %v", err)
+				log.Printf("[ERROR] failed to decode episode: %v", err)
 				return
 			}
 
@@ -194,18 +141,6 @@ func getInfo(ctx context.Context, url string) (content.FileInfo, error) {
 	return info, nil
 }
 
-func getAudioLink(ctx context.Context, url string) (string, error) {
-	fcmd := fmt.Sprintf(audioCmd, url)
-	cmd := exec.CommandContext(ctx, "sh", "-c", fcmd)
-
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return "", fmt.Errorf("failed to get output: %v", err)
-	}
-
-	return string(output), nil
-}
-
 func parseInfo(path string) (info content.FileInfo, err error) {
 	jsonInfo, err := os.Open(path)
 	if err != nil {
@@ -233,4 +168,33 @@ func executeCommand(ctx context.Context, cmdStr string) error {
 
 	log.Printf("[DEBUG] executing command: %s", cmd.String())
 	return cmd.Run()
+}
+
+func infoToEpisode(info content.FileInfo) (episode.Episode, error) {
+	var format content.Format
+	for _, f := range info.Formats {
+		if f.ID == "140" {
+			format = f
+			break
+		}
+	}
+
+	pubDate, err := time.Parse("20060102", info.Date)
+	if err != nil {
+		return episode.Episode{}, err
+	}
+
+	return episode.NewEpisode(
+		info.ID,
+		"audio/"+format.Extension, // TODO: Fix audio type
+		format.URL,
+		info.Link,
+		info.ImageURL,
+		info.Title,
+		info.Description, // TODO: "<![CDATA[" + dl.Info.Description + "]]>",
+		info.Author,
+		pubDate.Format("Mon, 2 Jan 2006 15:04:05 GMT"), // TODO: Save as converter.DateFormat, parse only on RSS build
+		format.Length,
+		info.Duration,
+	), nil
 }

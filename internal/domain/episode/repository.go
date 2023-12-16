@@ -10,7 +10,7 @@ var (
 )
 
 type EpisodeRepository interface {
-	CreateEpisode(e *Episode) error
+	SaveEpisode(e *Episode) error
 	GetEpisode(id string) (Episode, error)
 	GetEpisodes(limit int) ([]Episode, error)
 }

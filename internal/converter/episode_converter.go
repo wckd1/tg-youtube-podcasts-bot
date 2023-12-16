@@ -3,10 +3,27 @@ package converter
 import (
 	"encoding/json"
 	"fmt"
-	"time"
+	"strconv"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
-	"wckd1/tg-youtube-podcasts-bot/internal/infra/content"
 )
+
+func EpisodeToBinary(e *episode.Episode) ([]byte, error) {
+	epData := map[string]interface{}{
+		"id":           e.ID(),
+		"audio_type":   e.AudioType(),
+		"url":          e.URL(),
+		"link":         e.Link(),
+		"cover":        e.Cover(),
+		"title":        e.Title(),
+		"description":  e.Description(),
+		"author":       e.Author(),
+		"publish_date": e.PublishDate(),
+		"length":       strconv.Itoa(e.Length()),
+		"duration":     strconv.Itoa(e.Duration()),
+	}
+
+	return json.Marshal(epData)
+}
 
 func BinaryToEpisode(d []byte) (episode.Episode, error) {
 	var epData map[string]interface{}
@@ -18,7 +35,7 @@ func BinaryToEpisode(d []byte) (episode.Episode, error) {
 	if !ok {
 		return episode.Episode{}, fmt.Errorf("missing or invalid ID field")
 	}
-	audioType, ok := epData["audioType"].(string)
+	audioType, ok := epData["audio_type"].(string)
 	if !ok {
 		return episode.Episode{}, fmt.Errorf("missing or invalid Audio Type field")
 	}
@@ -46,39 +63,26 @@ func BinaryToEpisode(d []byte) (episode.Episode, error) {
 	if !ok {
 		return episode.Episode{}, fmt.Errorf("missing or invalid Author field")
 	}
-	publishDate, ok := epData["publishDate"].(string)
+	publishDate, ok := epData["publish_date"].(string)
 	if !ok {
 		return episode.Episode{}, fmt.Errorf("missing or invalid Publish Date field")
 	}
-	length, ok := epData["length"].(int)
+	lengthStr, ok := epData["length"].(string)
 	if !ok {
-		return episode.Episode{}, fmt.Errorf("missing or invalid Length field")
+		return episode.Episode{}, fmt.Errorf("missing Length field")
 	}
-	duration, ok := epData["duration"].(int)
+	length, err := strconv.Atoi(lengthStr)
+	if err != nil {
+		return episode.Episode{}, fmt.Errorf("invalid Length field, %+v", err)
+	}
+	durationStr, ok := epData["duration"].(string)
 	if !ok {
-		return episode.Episode{}, fmt.Errorf("missing or invalid Duration field")
+		return episode.Episode{}, fmt.Errorf("missing Duration field")
+	}
+	duration, err := strconv.Atoi(durationStr)
+	if err != nil {
+		return episode.Episode{}, fmt.Errorf("invalid Duration field, %+v", err)
 	}
 
 	return episode.NewEpisode(id, audioType, url, link, cover, title, description, author, publishDate, length, duration), nil
-}
-
-func DownloadToEpisode(id string, dl content.Download) (episode.Episode, error) {
-	pubDate, err := time.Parse("20060102", dl.Info.Date)
-	if err != nil {
-		return episode.Episode{}, err
-	}
-
-	return episode.NewEpisode(
-		id,
-		dl.Info.Type,
-		dl.URL,
-		dl.Info.Link,
-		dl.Info.ImageURL,
-		dl.Info.Title,
-		dl.Info.Description, // TODO: "<![CDATA[" + dl.Info.Description + "]]>",
-		dl.Info.Author,
-		pubDate.Format("Mon, 2 Jan 2006 15:04:05 GMT"), // TODO: Save if DateFormat, parse only on RSS build
-		dl.Info.Length,
-		dl.Info.Duration,
-	), nil
 }
