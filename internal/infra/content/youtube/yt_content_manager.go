@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/subscription"
 	"wckd1/tg-youtube-podcasts-bot/internal/infra/content"
 
 	"github.com/google/uuid"
@@ -24,7 +25,7 @@ var ErrNotAvailable = errors.New("yt-dlp not available")
 var _ episode.ContentManager = (*youTubeContentManager)(nil)
 
 const (
-	baseCmd    = "yt-dlp --skip-download --write-info-json --no-progress %s"
+	baseCmd    = "yt-dlp --skip-download --write-info-json --extractor-args \"youtube:skip=hls,dash,translated_subs\" --extractor-args \"youtube:player_client=web\" --no-progress %s"
 	loadArgs   = "-o %s.tmp"
 	updateArgs = "--no-write-playlist-metafiles --playlist-end 10 --dateafter %s -P \"%s\""
 	filterArgs = "--match-filters title~='%s'"
@@ -55,18 +56,18 @@ func (cm youTubeContentManager) Get(ctx context.Context, url string) (episode.Ep
 	return infoToEpisode(info)
 }
 
-func (cm youTubeContentManager) CheckUpdate(ctx context.Context, url string, date time.Time, filter string) (eps []episode.Episode, err error) {
+func (cm youTubeContentManager) CheckUpdate(ctx context.Context, sub subscription.Subscription) (eps []episode.Episode, err error) {
 	id := uuid.New().String()
 
 	// Prepare yt-dlp command
-	fcmd := fmt.Sprintf(baseCmd, url)
+	fcmd := fmt.Sprintf(baseCmd, sub.URL())
 	args := fmt.Sprintf(
 		updateArgs,
-		date.Format("20060102"), // For filter by date --dateafter "YYYYMMDD" // Maybe -1
-		"./"+id,                 // Output directory
+		sub.LastUpdated().Format("20060102"), // For filter by date --dateafter "YYYYMMDD" // Maybe -1
+		"./"+id,                              // Output directory
 	)
-	if len(filter) > 0 {
-		args = args + " " + fmt.Sprintf(filterArgs, filter)
+	if len(sub.Filter()) > 0 {
+		args = args + " " + fmt.Sprintf(filterArgs, sub.Filter())
 	}
 	cmdStr := strings.Join([]string{fcmd, args}, " ")
 
@@ -119,6 +120,7 @@ func (cm youTubeContentManager) CheckUpdate(ctx context.Context, url string, dat
 	return
 }
 
+// TODO: Optimize command to get only required fields
 func getInfo(ctx context.Context, url string) (content.FileInfo, error) {
 	id := uuid.New().String()
 	// Prepare yt-dlp command

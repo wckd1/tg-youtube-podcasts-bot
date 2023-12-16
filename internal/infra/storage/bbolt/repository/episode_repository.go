@@ -1,9 +1,7 @@
 package repository
 
 import (
-	"encoding/json"
 	"errors"
-	"log"
 	"wckd1/tg-youtube-podcasts-bot/internal/converter"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
 	"wckd1/tg-youtube-podcasts-bot/internal/infra/storage/bbolt"
@@ -21,6 +19,22 @@ type EpisodeRepository struct {
 
 func NewEpisodeRepository(store *bbolt.BBoltStore) episode.EpisodeRepository {
 	return &EpisodeRepository{store}
+}
+
+func (r *EpisodeRepository) CheckExist(id string) error {
+	return r.store.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(episodesBucketName))
+		if b == nil {
+			return episode.ErrNoEpisodesStorage
+		}
+
+		epData := b.Get([]byte(id))
+		if epData == nil {
+			return episode.ErrEpisodeNotFound
+		}
+
+		return nil
+	})
 }
 
 func (r *EpisodeRepository) SaveEpisode(ep *episode.Episode) error {
@@ -62,32 +76,4 @@ func (r *EpisodeRepository) GetEpisode(id string) (episode.Episode, error) {
 	})
 
 	return ep, err
-}
-
-func (r *EpisodeRepository) GetEpisodes(limit int) ([]episode.Episode, error) {
-	var result []episode.Episode
-
-	err := r.store.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(episodesBucketName))
-		if b == nil {
-			return episode.ErrNoEpisodesStorage
-		}
-
-		c := b.Cursor()
-
-		for k, v := c.Last(); k != nil; k, v = c.Prev() {
-			e := episode.Episode{}
-			if err := json.Unmarshal(v, &e); err != nil {
-				log.Printf("[WARN] failed to unmarshal, %v", err)
-				continue
-			}
-			if len(result) >= limit {
-				break
-			}
-			result = append(result, e)
-		}
-		return nil
-	})
-
-	return result, err
 }

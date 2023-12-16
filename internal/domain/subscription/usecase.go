@@ -55,6 +55,10 @@ func (uc SubscriptionUsecase) CreateSubscription(userID, id, url, filter string)
 	return nil
 }
 
+func (uc SubscriptionUsecase) SaveSubsctiption(sub *Subscription) error {
+	return uc.subscriptionRepository.SaveSubsctiption(sub)
+}
+
 func (uc SubscriptionUsecase) RemoveSubscription() error {
 	return nil
 }

@@ -93,6 +93,7 @@ func (a *App) initHTTPServer(_ context.Context) error {
 func (a *App) initUpdater(_ context.Context) error {
 	a.updater = updater.NewUpdater(
 		a.serviceProvider.SubscriptionUsecase(),
+		a.serviceProvider.EpisodeUsecase(),
 		a.serviceProvider.ContentManager(),
 		a.config.Feed.UpdateInterval,
 	)

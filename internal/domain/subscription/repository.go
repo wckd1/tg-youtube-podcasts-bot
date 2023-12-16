@@ -13,5 +13,4 @@ type SubscriptionRepository interface {
 	SaveSubsctiption(sub *Subscription) error
 	GetSubscription(id string) (Subscription, error)
 	GetSubscriptions() ([]Subscription, error)
-	DeleteSubsctiption(sub *Subscription) error
 }

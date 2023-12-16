@@ -86,14 +86,3 @@ func (r SubscriptionRepository) GetSubscriptions() ([]subscription.Subscription,
 
 	return result, err
 }
-
-func (r SubscriptionRepository) DeleteSubsctiption(sub *subscription.Subscription) error {
-	return r.store.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(subscriptionsBucketName))
-		if b == nil {
-			return subscription.ErrNoSubscriptionsStorage
-		}
-
-		return b.Delete([]byte(sub.ID()))
-	})
-}

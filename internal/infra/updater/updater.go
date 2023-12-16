@@ -17,16 +17,18 @@ var (
 // Updater is a task runner that check for updates with given delay
 type Updater struct {
 	subscriptionUsecase *subscription.SubscriptionUsecase
+	episodeUsecase      *episode.EpisodeUsecase
 	contentManager      episode.ContentManager
 	delay               time.Duration
 }
 
 func NewUpdater(
 	subUC *subscription.SubscriptionUsecase,
+	epUC *episode.EpisodeUsecase,
 	cm episode.ContentManager,
 	delay time.Duration,
 ) Updater {
-	return Updater{subscriptionUsecase: subUC, contentManager: cm, delay: delay}
+	return Updater{subscriptionUsecase: subUC, episodeUsecase: epUC, contentManager: cm, delay: delay}
 }
 
 func (u Updater) Start(ctx context.Context) {
@@ -64,25 +66,25 @@ func (u Updater) checkForUpdates(ctx context.Context) {
 		go func(s subscription.Subscription) {
 			defer wg.Done()
 
-			// TODO: May be pass Subscription entity
-			_, err := u.contentManager.CheckUpdate(ctx, s.URL(), s.LastUpdated(), s.Filter())
+			eps, err := u.contentManager.CheckUpdate(ctx, s)
 			if err != nil {
 				log.Printf("[WARN] failed to check update for %s, %+v", s.URL(), err)
 				return
 			}
 
-			// TODO: Add handling
-			// for _, dl := range dls {
-			// 	if err = fs.saveEpisode(dl); err != nil {
-			// 		log.Printf("[ERROR] failed to add episode, %v", err)
-			// 		return
-			// 	}
-			// }
+			// TODO: Check if can be write in parallel
+			for _, ep := range eps {
+				if err = u.episodeUsecase.SaveEpisode(&ep); err != nil {
+					log.Printf("[ERROR] failed to add episode, %v", err)
+					return
+				}
+			}
 
-			// s.LastUpdated = time.Now()
-			// if err := fs.Store.SaveSubsctiption(&s); err != nil {
-			// 	log.Printf("[WARN] failed to update time, %v", err)
-			// }
+			s.SetLastUpdated(time.Now())
+			if err := u.subscriptionUsecase.SaveSubsctiption(&s); err != nil {
+				log.Printf("[WARN] failed to update time, %v", err)
+			}
+
 		}(sub)
 	}
 

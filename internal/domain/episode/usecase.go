@@ -28,11 +28,49 @@ func NewEpisodeUsecase(
 }
 
 func (uc EpisodeUsecase) AddEpisode(userID, id, url string) error {
-	// Get episode if already exist
-	ep, err := uc.episodeRepository.GetEpisode(id)
+	// Get user's default playlist
+	user, err := uc.userRepository.GetUser(userID)
+	if err != nil {
+		return err
+	}
+
+	defaultPlaylist, err := uc.playlistRepository.GetPlaylist(user.DefaultPlaylist())
+	if err != nil {
+		return err
+	}
+
+	// Check if episode is already in playlist
+	for _, epID := range defaultPlaylist.Episodes() {
+		if epID == id {
+			return nil
+		}
+	}
+
+	// Ensure episode saved
+	if err := uc.fetchEpisodeIfNeeded(id, url); err != nil {
+		return err
+	}
+
+	// Add episode to default playlist
+	defaultPlaylist.AddEpisode(id)
+	err = uc.playlistRepository.SavePlaylist(&defaultPlaylist)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (uc EpisodeUsecase) SaveEpisode(ep *Episode) error {
+	return uc.episodeRepository.SaveEpisode(ep)
+}
+
+func (uc EpisodeUsecase) fetchEpisodeIfNeeded(id, url string) error {
+	// Check if episode already exists
+	err := uc.episodeRepository.CheckExist(id)
 
 	if err != nil {
-		// Create episode if not exist
+		// Fetch and save episode if not exists
 		if errors.Is(err, ErrEpisodeNotFound) || errors.Is(err, ErrNoEpisodesStorage) {
 			// Content manager get episode
 			ctx := context.Background()
@@ -49,26 +87,6 @@ func (uc EpisodeUsecase) AddEpisode(userID, id, url string) error {
 		} else {
 			return errors.Join(ErrEpisodeCreate, err)
 		}
-	}
-
-	// TODO: Check if episode is already in playlist
-
-	// Get user's default playlist
-	user, err := uc.userRepository.GetUser(userID)
-	if err != nil {
-		return err
-	}
-
-	defaultPlaylist, err := uc.playlistRepository.GetPlaylist(user.DefaultPlaylist())
-	if err != nil {
-		return err
-	}
-
-	// Add episode to default playlist
-	defaultPlaylist.AddEpisode(ep.ID())
-	err = uc.playlistRepository.SavePlaylist(&defaultPlaylist)
-	if err != nil {
-		return err
 	}
 
 	return nil

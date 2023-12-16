@@ -22,4 +22,5 @@ func (s *Subscription) SetURL(url string) { s.url = url }
 func (s Subscription) Filter() string           { return s.filter }
 func (s *Subscription) SetFilter(filter string) { s.filter = filter }
 
-func (s Subscription) LastUpdated() time.Time { return s.lastUpdated }
+func (s Subscription) LastUpdated() time.Time         { return s.lastUpdated }
+func (s *Subscription) SetLastUpdated(time time.Time) { s.lastUpdated = time }
