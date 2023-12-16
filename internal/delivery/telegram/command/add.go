@@ -64,7 +64,7 @@ func (a add) OnMessage(msg telegram.Message) telegram.Response {
 	}
 
 	// Or subscription handle
-	if err := a.subscriptionUsecase.CreateSubscription(); err != nil {
+	if err := a.subscriptionUsecase.CreateSubscription(userID, item.id, item.url, item.filter); err != nil {
 		log.Printf("[ERROR] failed to add subscription. %+v", err)
 		return telegram.Response{
 			Text: "Failed to add subscription",
@@ -87,6 +87,7 @@ type AddItem struct {
 	isEpisode bool
 	id        string
 	url       string
+	filter    string
 }
 
 // Supported links:
@@ -147,9 +148,10 @@ func (a add) parseArguments(args string) (AddItem, error) {
 		item.url = purl.String()
 
 		// Parse optional filter
-		filter := strings.TrimSpace(strings.ReplaceAll(args, furl, ""))
+		item.filter = strings.ReplaceAll(args, furl, "")
+
 		chanID := strings.Split(purl.Path, "/")[2]
-		item.id = strings.Join([]string{chanID, filter}, "_")
+		item.id = strings.Join([]string{chanID, strings.TrimSpace(item.filter)}, "_")
 		return item, nil
 	}
 
@@ -158,8 +160,8 @@ func (a add) parseArguments(args string) (AddItem, error) {
 		item.url = purl.String()
 
 		// Parse optional filter
-		filter := strings.TrimSpace(strings.ReplaceAll(args, furl, ""))
-		item.id = strings.Join([]string{path, filter}, "_")
+		item.filter = strings.ReplaceAll(args, furl, "")
+		item.id = strings.Join([]string{path, strings.TrimSpace(item.filter)}, "_")
 		return item, nil
 	}
 

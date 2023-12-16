@@ -101,7 +101,7 @@ func (s *serviceProvider) SubscriptionRepository() subscription.SubscriptionRepo
 }
 func (s *serviceProvider) SubscriptionUsecase() *subscription.SubscriptionUsecase {
 	if s.subscriptionUsecase == nil {
-		s.subscriptionUsecase = subscription.NewSubscriptionUsecase(s.SubscriptionRepository())
+		s.subscriptionUsecase = subscription.NewSubscriptionUsecase(s.SubscriptionRepository(), s.UserRepository())
 	}
 
 	return s.subscriptionUsecase

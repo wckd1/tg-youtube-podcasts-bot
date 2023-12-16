@@ -31,3 +31,6 @@ func (u *User) AddPlaylist(id string) {
 }
 
 func (u User) Subscriptions() []string { return u.subscriptions }
+func (u *User) AddSubscription(id string) {
+	u.subscriptions = append(u.subscriptions, id)
+}

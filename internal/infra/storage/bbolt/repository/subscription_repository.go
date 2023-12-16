@@ -10,12 +10,6 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-var (
-	ErrNoSubscriptionsBucket = errors.New("no saved subscriptions")
-	ErrSubscriptionEncoding  = errors.New("can't encode subscription")
-	ErrSubscriptionDecoding  = errors.New("can't decode subscription")
-)
-
 const subscriptionsBucketName = "subscriptions"
 
 var _ subscription.SubscriptionRepository = (*SubscriptionRepository)(nil)
@@ -37,10 +31,35 @@ func (r SubscriptionRepository) SaveSubsctiption(sub *subscription.Subscription)
 
 		subData, err := converter.SubscriptionToBinary(sub)
 		if err != nil {
-			return errors.Join(ErrSubscriptionEncoding, err)
+			return errors.Join(subscription.ErrSubscriptionEncoding, err)
 		}
 		return b.Put([]byte(sub.ID()), subData)
 	})
+}
+
+func (r SubscriptionRepository) GetSubscription(id string) (subscription.Subscription, error) {
+	var sub subscription.Subscription
+
+	err := r.store.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(subscriptionsBucketName))
+		if b == nil {
+			return subscription.ErrNoSubscriptionsStorage
+		}
+
+		subData := b.Get([]byte(id))
+		if subData == nil {
+			return subscription.ErrSubscriptionNotFound
+		}
+
+		decodedSub, err := converter.BinaryToSubscription(subData)
+		if err != nil {
+			return errors.Join(subscription.ErrSubscriptionDecoding, err)
+		}
+		sub = decodedSub
+		return nil
+	})
+
+	return sub, err
 }
 
 func (r SubscriptionRepository) GetSubscriptions() ([]subscription.Subscription, error) {
@@ -49,7 +68,7 @@ func (r SubscriptionRepository) GetSubscriptions() ([]subscription.Subscription,
 	err := r.store.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(subscriptionsBucketName))
 		if b == nil {
-			return ErrNoSubscriptionsBucket
+			return subscription.ErrNoSubscriptionsStorage
 		}
 
 		c := b.Cursor()
@@ -57,7 +76,7 @@ func (r SubscriptionRepository) GetSubscriptions() ([]subscription.Subscription,
 		for k, v := c.First(); k != nil; k, v = c.Next() {
 			s, err := converter.BinaryToSubscription(v)
 			if err != nil {
-				log.Printf("[WARN] failed to unmarshal, %+v", errors.Join(ErrSubscriptionDecoding, err))
+				log.Printf("[WARN] failed to unmarshal, %+v", errors.Join(subscription.ErrSubscriptionDecoding, err))
 				continue
 			}
 			result = append(result, s)
@@ -72,7 +91,7 @@ func (r SubscriptionRepository) DeleteSubsctiption(sub *subscription.Subscriptio
 	return r.store.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(subscriptionsBucketName))
 		if b == nil {
-			return ErrNoSubscriptionsBucket
+			return subscription.ErrNoSubscriptionsStorage
 		}
 
 		return b.Delete([]byte(sub.ID()))
