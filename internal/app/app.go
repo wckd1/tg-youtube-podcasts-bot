@@ -84,7 +84,7 @@ func (a *App) initTelegramListener(_ context.Context) error {
 func (a *App) initHTTPServer(_ context.Context) error {
 	a.httpServer = httpapi.NewServer(a.config.Server.Port)
 
-	a.httpServer.RegisterRSSHandler(a.serviceProvider.RSSUseCase(), a.config.Server.RssKey)
+	a.httpServer.RegisterRSSHandler(a.serviceProvider.RSSUseCase())
 
 	return nil
 }

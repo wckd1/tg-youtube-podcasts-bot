@@ -2,9 +2,11 @@ package repository
 
 import (
 	"errors"
+	"log"
 	"wckd1/tg-youtube-podcasts-bot/internal/converter"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/playlist"
 	"wckd1/tg-youtube-podcasts-bot/internal/infra/storage/bbolt"
+	"wckd1/tg-youtube-podcasts-bot/utils"
 
 	bolt "go.etcd.io/bbolt"
 )
@@ -60,6 +62,34 @@ func (r PlaylistRepository) GetPlaylist(id string) (playlist.Playlist, error) {
 	})
 
 	return pl, err
+}
+
+func (r PlaylistRepository) GetPlaylistsWithSubscription(subID string) ([]playlist.Playlist, error) {
+	var result []playlist.Playlist
+
+	err := r.store.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(playlistsBucketName))
+		if b == nil {
+			return playlist.ErrNoPlaylistsStorage
+		}
+
+		c := b.Cursor()
+
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			pl, err := converter.BinaryToPlaylist(v)
+			if err != nil {
+				log.Printf("[WARN] failed to unmarshal, %+v", errors.Join(playlist.ErrPlaylistDecoding, err))
+				continue
+			}
+
+			if utils.Contains(pl.Subscriptions(), subID) {
+				result = append(result, pl)
+			}
+		}
+		return nil
+	})
+
+	return result, err
 }
 
 func (r PlaylistRepository) DeletePlaylist(id string) error {

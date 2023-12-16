@@ -12,5 +12,6 @@ var (
 type PlaylistRepository interface {
 	SavePlaylist(playlist *Playlist) error
 	GetPlaylist(id string) (Playlist, error)
+	GetPlaylistsWithSubscription(subID string) ([]Playlist, error)
 	DeletePlaylist(id string) error
 }

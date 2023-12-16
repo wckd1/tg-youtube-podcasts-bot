@@ -2,8 +2,10 @@ package converter
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
+	"time"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
 )
 
@@ -17,7 +19,7 @@ func EpisodeToBinary(e *episode.Episode) ([]byte, error) {
 		"title":        e.Title(),
 		"description":  e.Description(),
 		"author":       e.Author(),
-		"publish_date": e.PublishDate(),
+		"publish_date": e.PublishDate().Format(DateFormat),
 		"length":       strconv.Itoa(e.Length()),
 		"duration":     strconv.Itoa(e.Duration()),
 	}
@@ -63,10 +65,16 @@ func BinaryToEpisode(d []byte) (episode.Episode, error) {
 	if !ok {
 		return episode.Episode{}, fmt.Errorf("missing or invalid Author field")
 	}
-	publishDate, ok := epData["publish_date"].(string)
+
+	publishDateStr, ok := epData["publish_date"].(string)
 	if !ok {
-		return episode.Episode{}, fmt.Errorf("missing or invalid Publish Date field")
+		return episode.Episode{}, fmt.Errorf("missing Publish Date field")
 	}
+	publishDate, err := time.Parse(DateFormat, publishDateStr)
+	if err != nil {
+		return episode.Episode{}, errors.Join(fmt.Errorf("invalid format of Publish Date field"), err)
+	}
+
 	lengthStr, ok := epData["length"].(string)
 	if !ok {
 		return episode.Episode{}, fmt.Errorf("missing Length field")
@@ -75,6 +83,7 @@ func BinaryToEpisode(d []byte) (episode.Episode, error) {
 	if err != nil {
 		return episode.Episode{}, fmt.Errorf("invalid Length field, %+v", err)
 	}
+
 	durationStr, ok := epData["duration"].(string)
 	if !ok {
 		return episode.Episode{}, fmt.Errorf("missing Duration field")

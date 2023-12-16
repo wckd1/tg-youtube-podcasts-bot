@@ -1,9 +1,7 @@
 feed:
   update_interval: 1h
-  limit: 20
 server:
   port: 6745
-  rss_key: rss_secret_key
 telegram:
   bot_token: telegram_bot_token
   debug_mode: true

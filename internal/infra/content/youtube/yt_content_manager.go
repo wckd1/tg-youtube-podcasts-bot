@@ -187,14 +187,14 @@ func infoToEpisode(info content.FileInfo) (episode.Episode, error) {
 
 	return episode.NewEpisode(
 		info.ID,
-		"audio/"+format.Extension, // TODO: Fix audio type
+		"audio/"+format.Extension,
 		format.URL,
 		info.Link,
 		info.ImageURL,
 		info.Title,
-		info.Description, // TODO: "<![CDATA[" + dl.Info.Description + "]]>",
+		info.Description,
 		info.Author,
-		pubDate.Format("Mon, 2 Jan 2006 15:04:05 GMT"), // TODO: Save as converter.DateFormat, parse only on RSS build
+		pubDate,
 		format.Length,
 		info.Duration,
 	), nil

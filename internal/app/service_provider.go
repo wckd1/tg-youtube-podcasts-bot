@@ -6,7 +6,6 @@ import (
 	"wckd1/tg-youtube-podcasts-bot/configs"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/playlist"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/rss"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/service"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/subscription"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/usecase"
@@ -34,7 +33,7 @@ type serviceProvider struct {
 	registerUsecase *usecase.RegisterUsecase
 	updateUsecase   *usecase.UpdateUsecase
 	addUsecase      *usecase.AddUsecase
-	rssUseCase      *rss.RSSUseCase
+	rssUseCase      *usecase.RSSUseCase
 }
 
 func newServiceProvider(ctx context.Context, config configs.Config) *serviceProvider {
@@ -133,9 +132,12 @@ func (s *serviceProvider) AddUsecase() *usecase.AddUsecase {
 	return s.addUsecase
 }
 
-func (s *serviceProvider) RSSUseCase() *rss.RSSUseCase {
+func (s *serviceProvider) RSSUseCase() *usecase.RSSUseCase {
 	if s.rssUseCase == nil {
-		s.rssUseCase = rss.NewRSSUseCase()
+		s.rssUseCase = usecase.NewRSSUseCase(
+			s.PlaylistRepository(),
+			s.EpisodeRepository(),
+		)
 	}
 
 	return s.rssUseCase

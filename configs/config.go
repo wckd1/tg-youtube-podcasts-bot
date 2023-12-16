@@ -15,11 +15,9 @@ var (
 type Config struct {
 	Feed struct {
 		UpdateInterval time.Duration `mapstructure:"update_interval"`
-		Limit          int           `mapstructure:"limit"`
 	}
 	Server struct {
-		RssKey string `mapstructure:"rss_key"`
-		Port   string `mapstructure:"port"`
+		Port string `mapstructure:"port"`
 	}
 	Telegram struct {
 		BotAPIToken string `mapstructure:"bot_token"`

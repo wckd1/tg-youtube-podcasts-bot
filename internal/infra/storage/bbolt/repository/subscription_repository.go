@@ -74,12 +74,12 @@ func (r SubscriptionRepository) GetSubscriptions() ([]subscription.Subscription,
 		c := b.Cursor()
 
 		for k, v := c.First(); k != nil; k, v = c.Next() {
-			s, err := converter.BinaryToSubscription(v)
+			sub, err := converter.BinaryToSubscription(v)
 			if err != nil {
 				log.Printf("[WARN] failed to unmarshal, %+v", errors.Join(subscription.ErrSubscriptionDecoding, err))
 				continue
 			}
-			result = append(result, s)
+			result = append(result, sub)
 		}
 		return nil
 	})

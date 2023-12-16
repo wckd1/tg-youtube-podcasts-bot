@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"wckd1/tg-youtube-podcasts-bot/internal/delivery/telegram"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/usecase"
+	"wckd1/tg-youtube-podcasts-bot/utils"
 )
 
 type register struct {
@@ -18,7 +19,7 @@ func NewRegisterCommand(registerUsecase *usecase.RegisterUsecase) telegram.Comma
 
 // OnMessage return new subscription status
 func (r register) OnMessage(msg telegram.Message) telegram.Response {
-	if !contains(r.ReactOn(), msg.Command) {
+	if !utils.Contains(r.ReactOn(), msg.Command) {
 		return telegram.Response{}
 	}
 
@@ -31,11 +32,6 @@ func (r register) OnMessage(msg telegram.Message) telegram.Response {
 				Text: "You are already registered",
 				Send: true,
 			}
-		}
-
-		return telegram.Response{
-			Text: "Registration failed",
-			Send: true,
 		}
 	}
 

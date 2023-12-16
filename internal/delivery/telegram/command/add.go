@@ -9,6 +9,7 @@ import (
 	"strings"
 	"wckd1/tg-youtube-podcasts-bot/internal/delivery/telegram"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/usecase"
+	"wckd1/tg-youtube-podcasts-bot/utils"
 
 	"mvdan.cc/xurls/v2"
 )
@@ -30,7 +31,7 @@ func NewAddCommand(addUsecase *usecase.AddUsecase) telegram.Command {
 
 // OnMessage return new subscription status
 func (a add) OnMessage(msg telegram.Message) telegram.Response {
-	if !contains(a.ReactOn(), msg.Command) {
+	if !utils.Contains(a.ReactOn(), msg.Command) {
 		return telegram.Response{}
 	}
 
