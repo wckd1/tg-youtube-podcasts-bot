@@ -108,10 +108,8 @@ func (cm youTubeContentManager) CheckUpdate(ctx context.Context, sub subscriptio
 		}(fp)
 	}
 
-	go func() {
-		wg.Wait()
-		close(resps)
-	}()
+	wg.Wait()
+	close(resps)
 
 	for r := range resps {
 		eps = append(eps, r)

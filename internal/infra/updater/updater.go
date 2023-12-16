@@ -72,12 +72,17 @@ func (u Updater) checkForUpdates(ctx context.Context) {
 				return
 			}
 
-			// TODO: Check if can be write in parallel
+			wg.Add(len(eps))
 			for _, ep := range eps {
-				if err = u.episodeUsecase.SaveEpisode(&ep); err != nil {
-					log.Printf("[ERROR] failed to add episode, %v", err)
-					return
-				}
+				go func(e episode.Episode) {
+					defer wg.Done()
+
+					// TODO: Update bounded playlists
+					if err = u.episodeUsecase.SaveEpisode(&e); err != nil {
+						log.Printf("[ERROR] failed to add episode, %v", err)
+						return
+					}
+				}(ep)
 			}
 
 			s.SetLastUpdated(time.Now())
@@ -88,6 +93,6 @@ func (u Updater) checkForUpdates(ctx context.Context) {
 		}(sub)
 	}
 
-	go wg.Wait()
+	wg.Wait()
 	log.Println("[INFO] update completed")
 }
