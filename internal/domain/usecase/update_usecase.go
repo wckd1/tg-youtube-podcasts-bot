@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"errors"
+	"log"
 	"time"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/playlist"
@@ -59,11 +60,33 @@ func (uc UpdateUsecase) GetPendingSubscriptions() ([]subscription.Subscription, 
 	return pSubs, nil
 }
 
-// TODO: Update bounded playlists
-func (uc UpdateUsecase) SaveEpisode(ep *episode.Episode) error {
-	return uc.episodeRepository.SaveEpisode(ep)
+func (uc UpdateUsecase) SaveEpisode(ep *episode.Episode, subID string) error {
+	// Save episode
+	err := uc.episodeRepository.SaveEpisode(ep)
+	if err != nil {
+		return err
+	}
+
+	// Get playlists with subscription
+	pls, err := uc.playlistRepository.GetPlaylistsWithSubscription(subID)
+	if err != nil {
+		return err
+	}
+
+	// Add episode to playlists
+	for _, pl := range pls {
+		pl.AddEpisode(ep.ID())
+
+		if err := uc.playlistRepository.SavePlaylist(&pl); err != nil {
+			log.Printf("[ERROR] can't add episode to playlist, %+v", err)
+			continue
+		}
+	}
+
+	return nil
 }
 
-func (uc UpdateUsecase) SaveSubsctiption(sub *subscription.Subscription) error {
+func (uc UpdateUsecase) SaveSubsctiption(sub *subscription.Subscription, lastUpdated time.Time) error {
+	sub.SetLastUpdated(time.Now())
 	return uc.subscriptionRepository.SaveSubsctiption(sub)
 }

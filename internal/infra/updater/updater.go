@@ -77,15 +77,14 @@ func (u Updater) checkForUpdates(ctx context.Context) {
 				go func(e episode.Episode) {
 					defer wg.Done()
 
-					if err = u.updateUsecase.SaveEpisode(&e); err != nil {
+					if err = u.updateUsecase.SaveEpisode(&e, s.ID()); err != nil {
 						log.Printf("[ERROR] failed to add episode, %v", err)
 						return
 					}
 				}(ep)
 			}
 
-			s.SetLastUpdated(time.Now())
-			if err := u.updateUsecase.SaveSubsctiption(&s); err != nil {
+			if err := u.updateUsecase.SaveSubsctiption(&s, time.Now()); err != nil {
 				log.Printf("[WARN] failed to update time, %v", err)
 			}
 
