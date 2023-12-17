@@ -9,6 +9,7 @@ const (
 	SubIDKey       = "id"
 	SubURLKey      = "url"
 	SubPlaylistKey = "playlist"
+	SubFilterKey   = "filter"
 )
 
 type SubscribeArguments map[string]string
@@ -30,16 +31,32 @@ func ParseSubscribeArguments(arguments string) (AddArguments, error) {
 	subArgs[SubIDKey] = id
 	subArgs[SubURLKey] = url
 
-	// Get playlist if provided
+	// Get additional parameters if provided
 	var playlist string
+	var filter string
+
 	for i := 1; i < len(args); i++ {
-		if args[i] == "-p" && i+1 < len(args) {
-			playlist = args[i+1]
-			break
+		switch args[i] {
+		case "-p":
+			for j := i + 1; j < len(args) && !strings.HasPrefix(args[j], "-"); j++ {
+				playlist += args[j] + " "
+			}
+			playlist = strings.TrimSpace(playlist)
+			i += strings.Count(playlist, " ")
+
+		case "-f":
+			for j := i + 1; j < len(args) && !strings.HasPrefix(args[j], "-"); j++ {
+				filter += args[j] + " "
+			}
+			filter = strings.TrimSpace(filter)
+			i += strings.Count(filter, " ")
 		}
 	}
 	if playlist != "" {
 		subArgs[SubPlaylistKey] = playlist
+	}
+	if filter != "" {
+		subArgs[SubFilterKey] = filter
 	}
 
 	return subArgs, nil

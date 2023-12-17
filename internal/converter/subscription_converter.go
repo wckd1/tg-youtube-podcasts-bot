@@ -12,6 +12,7 @@ func SubscriptionToBinary(s *subscription.Subscription) ([]byte, error) {
 	sData := map[string]interface{}{
 		"id":           s.ID(),
 		"url":          s.URL(),
+		"filter":       s.Filter(),
 		"last_updated": s.LastUpdated().Format(DateFormat),
 	}
 
@@ -32,6 +33,10 @@ func BinaryToSubscription(d []byte) (subscription.Subscription, error) {
 	if !ok {
 		return subscription.Subscription{}, fmt.Errorf("missing or invalid URL field")
 	}
+	filter, ok := sData["filter"].(string)
+	if !ok {
+		return subscription.Subscription{}, fmt.Errorf("missing or invalid Filter field")
+	}
 	lastUpdatedStr, ok := sData["last_updated"].(string)
 	if !ok {
 		return subscription.Subscription{}, fmt.Errorf("missing or invalid Last Updated field")
@@ -41,5 +46,5 @@ func BinaryToSubscription(d []byte) (subscription.Subscription, error) {
 		return subscription.Subscription{}, errors.Join(fmt.Errorf("invalid format of Last Updated field"), err)
 	}
 
-	return subscription.NewSubscription(id, url, lastUpdated), nil
+	return subscription.NewSubscription(id, url, filter, lastUpdated), nil
 }

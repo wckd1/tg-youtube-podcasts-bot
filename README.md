@@ -55,6 +55,11 @@ Add subscription to specified playlist
 /sub https://youtube.com/c/{id} -p {playlist id or name}
 ```
 
+Filter string can be added to subscription to get only specified updates
+```
+/sub https://youtube.com/c/{id} -f {some title entry}
+```
+
 ## API
 Servise expose only one endpoint for adding feed to Podcasts app.
 

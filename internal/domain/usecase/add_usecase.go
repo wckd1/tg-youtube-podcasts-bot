@@ -67,7 +67,7 @@ func (uc AddUsecase) AddEpisode(userID, id, url, pl string) error {
 	return nil
 }
 
-func (uc AddUsecase) AddSubscription(userID, id, url, pl string) error {
+func (uc AddUsecase) AddSubscription(userID, id, url, pl, filter string) error {
 	// Get target playlist or default
 	playlist, err := uc.getTargetPlaylist(userID, pl)
 	if err != nil {
@@ -87,7 +87,7 @@ func (uc AddUsecase) AddSubscription(userID, id, url, pl string) error {
 	if err != nil {
 		// Create subscribtion if not exist
 		if errors.Is(err, subscription.ErrSubscriptionNotFound) || errors.Is(err, subscription.ErrNoSubscriptionsStorage) {
-			sub := subscription.NewSubscription(id, url, time.Now())
+			sub := subscription.NewSubscription(id, url, filter, time.Now())
 			// Save episode to database
 			err = uc.subscriptionRepository.SaveSubsctiption(&sub)
 			if err != nil {

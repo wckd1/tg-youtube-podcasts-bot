@@ -44,8 +44,12 @@ func (s subscribe) OnMessage(msg telegram.Message) telegram.Response {
 	if !ok {
 		playlist = ""
 	}
+	filter, ok := args[commandparser.SubFilterKey]
+	if !ok {
+		filter = ""
+	}
 
-	if err := s.addUsecase.AddSubscription(userID, id, url, playlist); err != nil {
+	if err := s.addUsecase.AddSubscription(userID, id, url, playlist, filter); err != nil {
 		log.Printf("[ERROR] failed to add subscription. %+v", err)
 		return telegram.Response{
 			Text: "Failed to add subscription",
