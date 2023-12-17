@@ -30,8 +30,10 @@ func (cl commandList) OnMessage(msg Message) Response {
 		}(c)
 	}
 
-	wg.Wait()
-	close(resps)
+	go func() {
+		wg.Wait()
+		close(resps)
+	}()
 
 	var lines []string
 	for r := range resps {
