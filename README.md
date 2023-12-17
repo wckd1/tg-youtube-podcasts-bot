@@ -36,28 +36,37 @@ Add video to specified playlist
 ```
 
 ### `sub`
+List subscriptions for default playlist
+```
+/sub
+```
+
+List subscriptions for  specified playlist
+```
+/sub -p {playlist id or name}
+```
 
 Add subscription to channel to default playlist
 ```
-/sub https://youtube.com/c/{id}
-/sub https://youtube.com/channel/{id}
-/sub https://youtube.com/{@id}
+/sub -new https://youtube.com/c/{id}
+/sub -new https://youtube.com/channel/{id}
+/sub -new https://youtube.com/{@id}
 ```
 
 Add subscription to youtube playlis to default playlist
 ```
-/sub https://youtube.com/watch?v={video_id}&list={id}
-/sub https://youtube.com/playlist?list={id}
+/sub -new https://youtube.com/watch?v={video_id}&list={id}
+/sub -new https://youtube.com/playlist?list={id}
 ```
 
 Add subscription to specified playlist
 ```
-/sub https://youtube.com/c/{id} -p {playlist id or name}
+/sub -new https://youtube.com/c/{id} -p {playlist id or name}
 ```
 
 Filter string can be added to subscription to get only specified updates
 ```
-/sub https://youtube.com/c/{id} -f {some title entry}
+/sub -new https://youtube.com/c/{id} -f {some title entry}
 ```
 
 ## API

@@ -15,10 +15,10 @@ import (
 var _ telegram.Command = (*playlist)(nil)
 
 type playlist struct {
-	playlistUsecase usecase.PlaylistUsecase
+	playlistUsecase *usecase.PlaylistUsecase
 }
 
-func NewPlaylistCommand(playlistUsecase usecase.PlaylistUsecase) telegram.Command {
+func NewPlaylistCommand(playlistUsecase *usecase.PlaylistUsecase) telegram.Command {
 	return playlist{playlistUsecase}
 }
 

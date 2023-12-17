@@ -30,11 +30,12 @@ type serviceProvider struct {
 	contentManager service.ContentManager
 
 	// Usecases
-	registerUsecase *usecase.RegisterUsecase
-	updateUsecase   *usecase.UpdateUsecase
-	addUsecase      *usecase.AddUsecase
-	playlistUsecase *usecase.PlaylistUsecase
-	rssUseCase      *usecase.RSSUseCase
+	registerUsecase     *usecase.RegisterUsecase
+	updateUsecase       *usecase.UpdateUsecase
+	addUsecase          *usecase.AddUsecase
+	playlistUsecase     *usecase.PlaylistUsecase
+	rssUseCase          *usecase.RSSUseCase
+	subscriptionUsecase *usecase.SubscriptionUsecase
 }
 
 func newServiceProvider(ctx context.Context, config configs.Config) *serviceProvider {
@@ -153,4 +154,16 @@ func (s *serviceProvider) RSSUseCase() *usecase.RSSUseCase {
 	}
 
 	return s.rssUseCase
+}
+
+func (s *serviceProvider) SubscriptionUsecase() *usecase.SubscriptionUsecase {
+	if s.subscriptionUsecase == nil {
+		s.subscriptionUsecase = usecase.NewSubscriptionUsecase(
+			s.UserRepository(),
+			s.PlaylistRepository(),
+			s.SubscriptionRepository(),
+		)
+	}
+
+	return s.subscriptionUsecase
 }

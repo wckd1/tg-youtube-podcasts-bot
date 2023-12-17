@@ -18,45 +18,39 @@ func ParseSubscribeArguments(arguments string) (AddArguments, error) {
 	subArgs := make(AddArguments)
 	args := strings.Fields(strings.TrimSpace(arguments))
 
-	// No arguments - invalid command
+	// No arguments - list default subscriptions
 	if len(args) < 2 {
-		return subArgs, ErrInvalidCommand
+		return subArgs, nil
 	}
-
-	// Get url
-	id, url, err := validateSubscriptionURL(args[0])
-	if err != nil {
-		return subArgs, err
-	}
-	subArgs[SubIDKey] = id
-	subArgs[SubURLKey] = url
 
 	// Get additional parameters if provided
-	var playlist string
-	var filter string
-
-	for i := 1; i < len(args); i++ {
+	for i := 0; i < len(args); i++ {
 		switch args[i] {
+		case "-new":
+			if i+1 < len(args) {
+				id, url, err := validateSubscriptionURL(args[i+1])
+				if err != nil {
+					return subArgs, err
+				}
+				subArgs[SubIDKey] = id
+				subArgs[SubURLKey] = url
+				i++
+			}
 		case "-p":
+			var playlist string
 			for j := i + 1; j < len(args) && !strings.HasPrefix(args[j], "-"); j++ {
 				playlist += args[j] + " "
 			}
-			playlist = strings.TrimSpace(playlist)
+			subArgs[SubPlaylistKey] = strings.TrimSpace(playlist)
 			i += strings.Count(playlist, " ")
-
 		case "-f":
+			var filter string
 			for j := i + 1; j < len(args) && !strings.HasPrefix(args[j], "-"); j++ {
 				filter += args[j] + " "
 			}
-			filter = strings.TrimSpace(filter)
+			subArgs[SubFilterKey] = strings.TrimSpace(filter)
 			i += strings.Count(filter, " ")
 		}
-	}
-	if playlist != "" {
-		subArgs[SubPlaylistKey] = playlist
-	}
-	if filter != "" {
-		subArgs[SubFilterKey] = filter
 	}
 
 	return subArgs, nil

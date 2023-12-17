@@ -48,3 +48,7 @@ func BinaryToSubscription(d []byte) (subscription.Subscription, error) {
 
 	return subscription.NewSubscription(id, url, filter, lastUpdated), nil
 }
+
+func SubscriptionToString(sub *subscription.Subscription) string {
+	return fmt.Sprintf("id: %s, url: %s, filter: %s", sub.ID(), sub.URL(), sub.Filter())
+}
