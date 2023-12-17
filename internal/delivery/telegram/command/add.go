@@ -21,6 +21,8 @@ var (
 	ErrNotSupportedURL = errors.New("unrecognized link type")
 )
 
+var _ telegram.Command = (*add)(nil)
+
 type add struct {
 	addUsecase *usecase.AddUsecase
 }

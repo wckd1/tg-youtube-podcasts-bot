@@ -33,6 +33,7 @@ type serviceProvider struct {
 	registerUsecase *usecase.RegisterUsecase
 	updateUsecase   *usecase.UpdateUsecase
 	addUsecase      *usecase.AddUsecase
+	playlistUsecase *usecase.PlaylistUsecase
 	rssUseCase      *usecase.RSSUseCase
 }
 
@@ -130,6 +131,17 @@ func (s *serviceProvider) AddUsecase() *usecase.AddUsecase {
 	}
 
 	return s.addUsecase
+}
+
+func (s *serviceProvider) PlaylistUsecase() *usecase.PlaylistUsecase {
+	if s.playlistUsecase == nil {
+		s.playlistUsecase = usecase.NewPlaylistUsecase(
+			s.UserRepository(),
+			s.PlaylistRepository(),
+		)
+	}
+
+	return s.playlistUsecase
 }
 
 func (s *serviceProvider) RSSUseCase() *usecase.RSSUseCase {

@@ -44,7 +44,10 @@ func NewApp(ctx context.Context, config configs.Config) (*App, error) {
 }
 
 func (a App) Run() {
-	go a.telegramListener.Start()
+	go func() {
+		a.telegramListener.Start(a.ctx)
+	}()
+
 	go a.updater.Start(a.ctx)
 
 	go func() {
@@ -77,6 +80,7 @@ func (a *App) initTelegramListener(_ context.Context) error {
 	listener.RegisterCommands(
 		command.NewRegisterCommand(a.serviceProvider.RegisterUsecase()),
 		command.NewAddCommand(a.serviceProvider.AddUsecase()),
+		command.NewPlaylistCommand(*a.serviceProvider.PlaylistUsecase()),
 	)
 
 	a.telegramListener = listener

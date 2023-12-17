@@ -37,13 +37,13 @@ func (uc RegisterUsecase) RegisterUser(id string) error {
 
 	// Create default playlist
 	plID := uuid.NewString()
-	playlist := playlist.NewPlaylist(plID, playlist.DefaultPlaylistName, make([]string, 0), make([]string, 0))
+	playlist := playlist.NewPlaylist(plID, playlist.DefaultPlaylistName, []string{}, []string{})
 	if err = uc.playlistRepository.SavePlaylist(&playlist); err != nil {
 		return errors.Join(ErrPlaylistCreate, err)
 	}
 
 	// Create new user
-	user := user.NewUser(id, playlist.ID(), make([]string, 0))
+	user := user.NewUser(id, playlist.ID(), []string{})
 
 	// Save user
 	if err = uc.userRepository.SaveUser(&user); err != nil {

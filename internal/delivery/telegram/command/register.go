@@ -9,6 +9,8 @@ import (
 	"wckd1/tg-youtube-podcasts-bot/utils"
 )
 
+var _ telegram.Command = (*register)(nil)
+
 type register struct {
 	registerUsecase *usecase.RegisterUsecase
 }
@@ -43,5 +45,5 @@ func (r register) OnMessage(msg telegram.Message) telegram.Response {
 
 // ReactOn keys
 func (r register) ReactOn() []string {
-	return []string{"reg"}
+	return []string{"start"}
 }

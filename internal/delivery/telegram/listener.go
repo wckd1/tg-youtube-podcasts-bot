@@ -1,6 +1,7 @@
 package telegram
 
 import (
+	"context"
 	"errors"
 	"log"
 
@@ -41,31 +42,41 @@ func (l *TelegramListener) RegisterCommands(cs ...Command) {
 	l.commands = cl
 }
 
-func (l TelegramListener) Start() {
+func (l TelegramListener) Start(ctx context.Context) {
 	log.Println("[INFO] starting telegram listener...")
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 	updates := l.botAPI.GetUpdatesChan(u)
 
-	for update := range updates {
-		if update.Message == nil { // ignore any non-Message updates
-			continue
-		}
-		if !update.Message.IsCommand() { // ignore any non-command Messages
-			continue
-		}
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case update, ok := <-updates:
+			if !ok {
+				return
+			}
 
-		msg := l.transform(update.Message)
-		resp := l.commands.OnMessage(*msg)
-		if err := l.sendBotResponse(update.Message.Chat.ID, resp); err != nil {
-			log.Printf("[WARN] %+v", err)
+			if update.Message == nil { // ignore any non-Message updates
+				continue
+			}
+			if !update.Message.IsCommand() { // ignore any non-command Messages
+				continue
+			}
+
+			msg := l.transform(update.Message)
+			resp := l.commands.OnMessage(*msg)
+
+			if err := l.sendBotResponse(update.Message.Chat.ID, resp); err != nil {
+				log.Printf("[WARN] %+v", err)
+			}
 		}
 	}
 }
 
 func (l TelegramListener) Shutdown() {
-	l.botAPI.StopReceivingUpdates()
+	// l.botAPI.StopReceivingUpdates()
 	log.Println("[INFO] telegram listener stopped")
 }
 

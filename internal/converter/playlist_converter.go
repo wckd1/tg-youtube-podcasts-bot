@@ -65,3 +65,7 @@ func BinaryToPlaylist(d []byte) (playlist.Playlist, error) {
 
 	return playlist.NewPlaylist(id, name, episodes, subscriptions), nil
 }
+
+func PlaylistToString(pl *playlist.Playlist) string {
+	return fmt.Sprintf("id: %s, name: %s", pl.ID(), pl.Name())
+}
