@@ -10,6 +10,7 @@ var (
 )
 
 type SubscriptionRepository interface {
+	CheckExist(id string) error
 	SaveSubsctiption(sub *Subscription) error
 	GetSubscription(id string) (Subscription, error)
 	GetSubscriptions() ([]Subscription, error)

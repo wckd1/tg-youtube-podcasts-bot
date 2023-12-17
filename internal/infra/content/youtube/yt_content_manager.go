@@ -67,9 +67,9 @@ func (cm youTubeContentManager) CheckUpdate(ctx context.Context, sub subscriptio
 		sub.LastUpdated().Format("20060102"), // For filter by date --dateafter "YYYYMMDD" // Maybe -1
 		"./"+id,                              // Output directory
 	)
-	if len(sub.Filter()) > 0 {
-		args = args + " " + fmt.Sprintf(filterArgs, sub.Filter())
-	}
+	// if len(sub.Filter()) > 0 {
+	// 	args = args + " " + fmt.Sprintf(filterArgs, sub.Filter())
+	// }
 	cmdStr := strings.Join([]string{fcmd, args}, " ")
 
 	// Load metadata files

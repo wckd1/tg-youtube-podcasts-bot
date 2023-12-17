@@ -2,7 +2,6 @@ package commandparser
 
 import (
 	"errors"
-	"log"
 	"net/url"
 	"strings"
 )
@@ -24,13 +23,12 @@ type AddArguments map[string]string
 
 func ParseAddArguments(arguments string) (AddArguments, error) {
 	addArgs := make(AddArguments)
+	args := strings.Fields(strings.TrimSpace(arguments))
 
 	// No arguments - invalid command
-	if len(arguments) < 2 {
+	if len(args) < 2 {
 		return addArgs, ErrInvalidCommand
 	}
-
-	args := strings.Fields(strings.TrimSpace(arguments))
 
 	// Get url
 	id, err := validateVideoURL(args[0])
@@ -39,8 +37,6 @@ func ParseAddArguments(arguments string) (AddArguments, error) {
 	}
 	addArgs[AddIDKey] = id
 	addArgs[AddURLKey] = args[0]
-
-	log.Printf("[INFO] episode id %s", addArgs[AddIDKey])
 
 	// Get playlist if provided
 	var playlist string
@@ -57,6 +53,10 @@ func ParseAddArguments(arguments string) (AddArguments, error) {
 	return addArgs, nil
 }
 
+// Supported links:
+//
+// Video:
+// /watch?v={id}
 func validateVideoURL(urlStr string) (string, error) {
 	// Parse string to URL
 	pURL, err := url.Parse(urlStr)

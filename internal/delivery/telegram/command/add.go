@@ -4,15 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/url"
 	"strconv"
-	"strings"
 	commandparser "wckd1/tg-youtube-podcasts-bot/internal/delivery/command_parser"
 	"wckd1/tg-youtube-podcasts-bot/internal/delivery/telegram"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/usecase"
 	"wckd1/tg-youtube-podcasts-bot/utils"
-
-	"mvdan.cc/xurls/v2"
 )
 
 var (
@@ -74,90 +70,4 @@ func (a add) OnMessage(msg telegram.Message) telegram.Response {
 // ReactOn keys
 func (a add) ReactOn() []string {
 	return []string{"add"}
-}
-
-type AddItem struct {
-	isEpisode bool
-	id        string
-	url       string
-	filter    string
-}
-
-// Supported links:
-//
-// Video:
-// /watch?v={id}
-//
-// Channel:
-// /c/{id}
-// /channel/{id}
-// /channel/@{id}
-//
-// Playlist:
-// /watch?v={video_id}&list={id}
-// /playlist?list={id}
-func (a add) parseArguments(args string) (AddItem, error) {
-	item := AddItem{}
-
-	// Check if arguments contains link
-	furl := xurls.Relaxed().FindString(args)
-	if len(furl) == 0 {
-		return item, ErrNoURL
-	}
-	purl, err := url.Parse(furl)
-	if err != nil {
-		return item, errors.Join(ErrParseURL, err)
-	}
-
-	// Check if YouTube link
-	if strings.ReplaceAll(purl.Host, "www.", "") != "youtube.com" {
-		return item, ErrNotYoutubeURL
-	}
-
-	// Check link type
-	path := strings.Split(purl.Path, "/")[1]
-
-	// Check for valid playlist link
-	listID, ok := purl.Query()["list"]
-	if ok && (path == "watch" || path == "playlist") {
-		item.isEpisode = false
-		item.url = "https://www.youtube.com/playlist?list=" + listID[0]
-		item.id = listID[0]
-		return item, nil
-	}
-
-	// Check for valid video link
-	episodeID := purl.Query().Get("v")
-	if episodeID != "" && path == "watch" {
-		item.isEpisode = true
-		item.url = purl.String()
-		item.id = episodeID
-		return item, nil
-	}
-
-	// Check for valid channel link
-	if path == "c" || path == "channel" {
-		item.isEpisode = false
-		item.url = purl.String()
-
-		// Parse optional filter
-		item.filter = strings.ReplaceAll(args, furl, "")
-
-		chanID := strings.Split(purl.Path, "/")[2]
-		item.id = strings.Join([]string{chanID, strings.TrimSpace(item.filter)}, "_")
-		return item, nil
-	}
-
-	if strings.HasPrefix(path, "@") {
-		item.isEpisode = false
-		item.url = purl.String()
-
-		// Parse optional filter
-		item.filter = strings.ReplaceAll(args, furl, "")
-		item.id = strings.Join([]string{path, strings.TrimSpace(item.filter)}, "_")
-		return item, nil
-	}
-
-	// No supported links found
-	return item, ErrNotSupportedURL
 }

@@ -20,7 +20,7 @@ List all playlists
 
 Create new playlist with given name
 ```
-/pl -new PLAYLIST_NAME
+/pl -new {playlist name}
 ```
 
 ### `add`
@@ -32,27 +32,27 @@ Add video to default playlist
 
 Add video to specified playlist
 ```
-/add https://youtube.com/watch?v={id} -p {PLAYLIST_ID or PLAYLIST_NAME}
+/add https://youtube.com/watch?v={id} -p {playlist id or name}
 ```
 
 ### `sub`
 
-Subscribe to channel
+Add subscription to channel to default playlist
 ```
 /sub https://youtube.com/c/{id}
 /sub https://youtube.com/channel/{id}
 /sub https://youtube.com/{@id}
 ```
 
-Subscribe to playlist
+Add subscription to youtube playlis to default playlist
 ```
 /sub https://youtube.com/watch?v={video_id}&list={id}
 /sub https://youtube.com/playlist?list={id}
 ```
 
-Filter string can be added to subscription to get only specified updates
+Add subscription to specified playlist
 ```
-/sub https://youtube.com/c/{id} -f {some title entry}
+/sub https://youtube.com/c/{id} -p {playlist id or name}
 ```
 
 ## API
@@ -72,7 +72,6 @@ Add config.yml file following the example of [example-config.yml](https://github
     - `debug_mode` - enable extended logging for debug mode (True/False)
 
 ## TODO
-- Add manually created playlists
 - Add fetch old episodes on subscribe
 - Optimize yt-dlp commands
 - Add godoc comments

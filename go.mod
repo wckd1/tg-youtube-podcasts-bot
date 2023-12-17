@@ -7,8 +7,9 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/spf13/viper v1.14.0
 	go.etcd.io/bbolt v1.3.7
-	mvdan.cc/xurls/v2 v2.4.0
 )
+
+require github.com/rogpeppe/go-internal v1.8.1 // indirect
 
 require (
 	github.com/fsnotify/fsnotify v1.6.0 // indirect

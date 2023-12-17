@@ -18,13 +18,12 @@ type PlaylistArguments map[string]string
 
 func ParsePlaylistArguments(arguments string) (PlaylistArguments, error) {
 	plArgs := make(PlaylistArguments)
+	args := strings.Fields(strings.TrimSpace(arguments))
 
 	// No arguments - list all playlists
-	if len(arguments) < 2 {
+	if len(args) < 2 {
 		return plArgs, nil
 	}
-
-	args := strings.Fields(strings.TrimSpace(arguments))
 
 	switch args[0] {
 	case "-new":

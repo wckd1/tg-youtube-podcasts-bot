@@ -22,6 +22,22 @@ func NewSubscriptionRepository(store *bbolt.BBoltStore) subscription.Subscriptio
 	return &SubscriptionRepository{store}
 }
 
+func (r *SubscriptionRepository) CheckExist(id string) error {
+	return r.store.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(subscriptionsBucketName))
+		if b == nil {
+			return subscription.ErrNoSubscriptionsStorage
+		}
+
+		subData := b.Get([]byte(id))
+		if subData == nil {
+			return subscription.ErrSubscriptionNotFound
+		}
+
+		return nil
+	})
+}
+
 func (r SubscriptionRepository) SaveSubsctiption(sub *subscription.Subscription) error {
 	return r.store.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(subscriptionsBucketName))

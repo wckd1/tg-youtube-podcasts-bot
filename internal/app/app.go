@@ -79,8 +79,9 @@ func (a *App) initTelegramListener(_ context.Context) error {
 
 	listener.RegisterCommands(
 		command.NewRegisterCommand(a.serviceProvider.RegisterUsecase()),
-		command.NewAddCommand(a.serviceProvider.AddUsecase()),
 		command.NewPlaylistCommand(*a.serviceProvider.PlaylistUsecase()),
+		command.NewAddCommand(a.serviceProvider.AddUsecase()),
+		command.NewSubscribeCommand(*a.serviceProvider.AddUsecase()),
 	)
 
 	a.telegramListener = listener
