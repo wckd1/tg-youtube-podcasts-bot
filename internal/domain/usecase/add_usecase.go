@@ -3,17 +3,21 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/playlist"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/service"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/subscription"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/user"
+
+	"github.com/google/uuid"
 )
 
 var (
 	ErrEpisodeCreate      = errors.New("can't add episode")
 	ErrSubscriptionCreate = errors.New("can't add subscription")
+	ErrPlaylistNotFound   = errors.New("playlist not found")
 )
 
 type AddUsecase struct {
@@ -34,20 +38,39 @@ func NewAddUsecase(
 	return &AddUsecase{userRepository, playlistRepository, episodeRepository, subscriptionRepository, contentManager}
 }
 
-func (uc AddUsecase) AddEpisode(userID, id, url string) error {
-	// Get user's default playlist
-	user, err := uc.userRepository.GetUser(userID)
-	if err != nil {
-		return err
-	}
+func (uc AddUsecase) AddEpisode(userID, id, url, pl string) error {
+	// Get target playlist
+	var playlist playlist.Playlist
 
-	defaultPlaylist, err := uc.playlistRepository.GetPlaylist(user.DefaultPlaylist())
-	if err != nil {
-		return err
+	if pl != "" {
+		plID, err := uuid.Parse(pl)
+		// Playlist name is passed
+		if err != nil {
+			return fmt.Errorf("add to playlist by name is not supported yet") // TODO
+		} else {
+			// Playlist id is passed
+			p, err := uc.playlistRepository.GetPlaylist(plID.String())
+			if err != nil {
+				return ErrPlaylistNotFound
+			}
+			playlist = p
+		}
+	} else {
+		// Get user's default playlist
+		user, err := uc.userRepository.GetUser(userID)
+		if err != nil {
+			return err
+		}
+
+		defaultPl, err := uc.playlistRepository.GetPlaylist(user.DefaultPlaylist())
+		if err != nil {
+			return err
+		}
+		playlist = defaultPl
 	}
 
 	// Check if episode is already in playlist
-	for _, epID := range defaultPlaylist.Episodes() {
+	for _, epID := range playlist.Episodes() {
 		if epID == id {
 			return nil
 		}
@@ -59,8 +82,8 @@ func (uc AddUsecase) AddEpisode(userID, id, url string) error {
 	}
 
 	// Add episode to default playlist
-	defaultPlaylist.AddEpisode(id)
-	err = uc.playlistRepository.SavePlaylist(&defaultPlaylist)
+	playlist.AddEpisode(id)
+	err := uc.playlistRepository.SavePlaylist(&playlist)
 	if err != nil {
 		return err
 	}

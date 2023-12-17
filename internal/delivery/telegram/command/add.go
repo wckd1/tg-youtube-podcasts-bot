@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	commandparser "wckd1/tg-youtube-podcasts-bot/internal/delivery/command_parser"
 	"wckd1/tg-youtube-podcasts-bot/internal/delivery/telegram"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/usecase"
 	"wckd1/tg-youtube-podcasts-bot/utils"
@@ -39,42 +40,33 @@ func (a add) OnMessage(msg telegram.Message) telegram.Response {
 
 	userID := strconv.Itoa(int(msg.ChatID))
 
-	// Parse arguments
-	item, err := a.parseArguments(msg.Arguments)
+	// Parse command arguments
+	args, err := commandparser.ParseAddArguments(msg.Arguments)
 	if err != nil {
+		log.Printf("[ERROR] can't parse playlist arguments, %+v", err)
 		return telegram.Response{
-			Text: fmt.Sprintf("Failed to add item %s", err.Error()),
+			Text: fmt.Sprintf("Can't execute command: %s", err.Error()),
 			Send: true,
 		}
 	}
 
-	// Sigle episode handle
-	if item.isEpisode {
-		if err := a.addUsecase.AddEpisode(userID, item.id, item.url); err != nil {
-			log.Printf("[ERROR] failed to add episode. %+v", err)
-			return telegram.Response{
-				Text: "Failed to add episode",
-				Send: true,
-			}
-		}
-
-		return telegram.Response{
-			Text: "Episode added",
-			Send: true,
-		}
+	id := args[commandparser.AddIDKey]
+	url := args[commandparser.AddURLKey]
+	playlist, ok := args[commandparser.AddPlaylistKey]
+	if !ok {
+		playlist = ""
 	}
 
-	// Or subscription handle
-	if err := a.addUsecase.CreateSubscription(userID, item.id, item.url, item.filter); err != nil {
-		log.Printf("[ERROR] failed to add subscription. %+v", err)
+	if err := a.addUsecase.AddEpisode(userID, id, url, playlist); err != nil {
+		log.Printf("[ERROR] failed to add episode. %+v", err)
 		return telegram.Response{
-			Text: "Failed to add subscription",
+			Text: "Failed to add episode",
 			Send: true,
 		}
 	}
 
 	return telegram.Response{
-		Text: "Subscription added",
+		Text: "Episode added",
 		Send: true,
 	}
 }

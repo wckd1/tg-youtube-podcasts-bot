@@ -13,8 +13,6 @@ The service uses [yt-dlp](https://github.com/yt-dlp/yt-dlp) to pull videos.
 Create new user with default playlist
 
 ### `pl`
-Working with playlists.
-
 List all playlists
 ```
 /pl
@@ -25,31 +23,36 @@ Create new playlist with given name
 /pl -new PLAYLIST_NAME
 ```
 
-
 ### `add`
-Add subscription or single video to feed.
 
-Add single item
+Add video to default playlist
 ```
 /add https://youtube.com/watch?v={id}
 ```
 
+Add video to specified playlist
+```
+/add https://youtube.com/watch?v={id} -p {PLAYLIST_ID or PLAYLIST_NAME}
+```
+
+### `sub`
+
 Subscribe to channel
 ```
-/add https://youtube.com/c/{id}
-/add https://youtube.com/channel/{id}
-/add https://youtube.com/{@id}
+/sub https://youtube.com/c/{id}
+/sub https://youtube.com/channel/{id}
+/sub https://youtube.com/{@id}
 ```
 
 Subscribe to playlist
 ```
-/add https://youtube.com/watch?v={video_id}&list={id}
-/add https://youtube.com/playlist?list={id}
+/sub https://youtube.com/watch?v={video_id}&list={id}
+/sub https://youtube.com/playlist?list={id}
 ```
 
 Filter string can be added to subscription to get only specified updates
 ```
-/add https://youtube.com/c/{id} {some title entry}
+/sub https://youtube.com/c/{id} -f {some title entry}
 ```
 
 ## API
