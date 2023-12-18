@@ -24,7 +24,7 @@ func NewStore(ctx context.Context) *BBoltStore {
 	}
 }
 
-func (s BBoltStore) Close() error {
+func (s *BBoltStore) Close() error {
 	return s.connection.Close()
 }
 

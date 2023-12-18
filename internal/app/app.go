@@ -58,6 +58,8 @@ func (a App) Run() {
 }
 
 func (a App) Shutdown(ctx context.Context) error {
+	a.serviceProvider.Store().Close()
+
 	a.telegramListener.Shutdown()
 	a.updater.Shutdown()
 	return a.httpServer.Shutdown(ctx)
