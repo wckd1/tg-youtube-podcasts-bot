@@ -3,7 +3,6 @@ package usecase
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/playlist"
@@ -112,13 +111,17 @@ func (uc AddUsecase) getTargetPlaylist(userID, pl string) (playlist.Playlist, er
 	var playlist playlist.Playlist
 
 	if pl != "" {
-		plID, err := uuid.Parse(pl)
+		_, err := uuid.Parse(pl)
 		// Playlist name is passed
 		if err != nil {
-			return playlist, fmt.Errorf("add to playlist by name is not supported yet") // TODO
+			p, err := uc.playlistRepository.GetPlaylistByName(pl)
+			if err != nil {
+				return playlist, ErrPlaylistNotFound
+			}
+			playlist = p
 		} else {
 			// Playlist id is passed
-			p, err := uc.playlistRepository.GetPlaylist(plID.String())
+			p, err := uc.playlistRepository.GetPlaylist(pl)
 			if err != nil {
 				return playlist, ErrPlaylistNotFound
 			}

@@ -64,6 +64,35 @@ func (r PlaylistRepository) GetPlaylist(id string) (playlist.Playlist, error) {
 	return pl, err
 }
 
+func (r PlaylistRepository) GetPlaylistByName(name string) (playlist.Playlist, error) {
+	var pl playlist.Playlist
+
+	err := r.store.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(playlistsBucketName))
+		if b == nil {
+			return playlist.ErrNoPlaylistsStorage
+		}
+
+		c := b.Cursor()
+
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			p, err := converter.BinaryToPlaylist(v)
+			if err != nil {
+				log.Printf("[WARN] failed to unmarshal, %+v", errors.Join(playlist.ErrPlaylistDecoding, err))
+				continue
+			}
+
+			if p.Name() == name {
+				pl = p
+				break
+			}
+		}
+		return nil
+	})
+
+	return pl, err
+}
+
 func (r PlaylistRepository) GetPlaylistsWithSubscription(subID string) ([]playlist.Playlist, error) {
 	var result []playlist.Playlist
 
