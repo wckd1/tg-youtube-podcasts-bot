@@ -4,15 +4,12 @@ import (
 	"context"
 	"log"
 	"wckd1/tg-youtube-podcasts-bot/configs"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/playlist"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/repository"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/service"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/subscription"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/usecase"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/user"
 	"wckd1/tg-youtube-podcasts-bot/internal/infra/content/youtube"
 	"wckd1/tg-youtube-podcasts-bot/internal/infra/storage/bbolt"
-	"wckd1/tg-youtube-podcasts-bot/internal/infra/storage/bbolt/repository"
+	bolrepo "wckd1/tg-youtube-podcasts-bot/internal/infra/storage/bbolt/repository"
 )
 
 type serviceProvider struct {
@@ -21,10 +18,10 @@ type serviceProvider struct {
 	store  *bbolt.BBoltStore
 
 	// Repositories
-	userRepository         user.UserRepository
-	playlistRepository     playlist.PlaylistRepository
-	subscriptionRepository subscription.SubscriptionRepository
-	episodeRepository      episode.EpisodeRepository
+	userRepository         repository.UserRepository
+	playlistRepository     repository.PlaylistRepository
+	subscriptionRepository repository.SubscriptionRepository
+	episodeRepository      repository.EpisodeRepository
 
 	// Services
 	contentManager service.ContentManager
@@ -53,33 +50,33 @@ func (s *serviceProvider) Store() *bbolt.BBoltStore {
 }
 
 // Repositories
-func (s *serviceProvider) UserRepository() user.UserRepository {
+func (s *serviceProvider) UserRepository() repository.UserRepository {
 	if s.userRepository == nil {
-		s.userRepository = repository.NewUserRepository(s.Store())
+		s.userRepository = bolrepo.NewUserRepository(s.Store())
 	}
 
 	return s.userRepository
 }
 
-func (s *serviceProvider) PlaylistRepository() playlist.PlaylistRepository {
+func (s *serviceProvider) PlaylistRepository() repository.PlaylistRepository {
 	if s.playlistRepository == nil {
-		s.playlistRepository = repository.NewPlaylistRepository(s.Store())
+		s.playlistRepository = bolrepo.NewPlaylistRepository(s.Store())
 	}
 
 	return s.playlistRepository
 }
 
-func (s *serviceProvider) SubscriptionRepository() subscription.SubscriptionRepository {
+func (s *serviceProvider) SubscriptionRepository() repository.SubscriptionRepository {
 	if s.subscriptionRepository == nil {
-		s.subscriptionRepository = repository.NewSubscriptionRepository(s.Store())
+		s.subscriptionRepository = bolrepo.NewSubscriptionRepository(s.Store())
 	}
 
 	return s.subscriptionRepository
 }
 
-func (s *serviceProvider) EpisodeRepository() episode.EpisodeRepository {
+func (s *serviceProvider) EpisodeRepository() repository.EpisodeRepository {
 	if s.episodeRepository == nil {
-		s.episodeRepository = repository.NewEpisodeRepository(s.Store())
+		s.episodeRepository = bolrepo.NewEpisodeRepository(s.Store())
 	}
 
 	return s.episodeRepository

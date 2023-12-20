@@ -6,9 +6,8 @@ import (
 	"log"
 	"sync"
 	"time"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/entity"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/service"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/subscription"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/usecase"
 )
 
@@ -59,7 +58,7 @@ func (u Updater) checkForUpdates(ctx context.Context) {
 	wg.Add(len(subs))
 
 	for _, sub := range subs {
-		go func(s subscription.Subscription) {
+		go func(s entity.Subscription) {
 			defer wg.Done()
 
 			eps, err := u.contentManager.CheckUpdate(ctx, s)
@@ -70,7 +69,7 @@ func (u Updater) checkForUpdates(ctx context.Context) {
 
 			wg.Add(len(eps))
 			for _, ep := range eps {
-				go func(e episode.Episode) {
+				go func(e entity.Episode) {
 					defer wg.Done()
 
 					if err = u.updateUsecase.SaveEpisode(&e, s.ID()); err != nil {

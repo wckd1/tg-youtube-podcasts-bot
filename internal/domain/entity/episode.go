@@ -1,4 +1,4 @@
-package episode
+package entity
 
 import "time"
 

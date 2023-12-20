@@ -2,29 +2,28 @@ package usecase
 
 import (
 	"log"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/playlist"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/subscription"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/user"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/entity"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/repository"
 
 	"github.com/google/uuid"
 )
 
 type SubscriptionUsecase struct {
-	userRepository         user.UserRepository
-	playlistRepository     playlist.PlaylistRepository
-	subscriptionRepository subscription.SubscriptionRepository
+	userRepository         repository.UserRepository
+	playlistRepository     repository.PlaylistRepository
+	subscriptionRepository repository.SubscriptionRepository
 }
 
 func NewSubscriptionUsecase(
-	userRepository user.UserRepository,
-	playlistRepository playlist.PlaylistRepository,
-	subscriptionRepository subscription.SubscriptionRepository,
+	userRepository repository.UserRepository,
+	playlistRepository repository.PlaylistRepository,
+	subscriptionRepository repository.SubscriptionRepository,
 ) *SubscriptionUsecase {
 	return &SubscriptionUsecase{userRepository, playlistRepository, subscriptionRepository}
 }
 
-func (uc SubscriptionUsecase) ListSubscriptions(userID, pl string) ([]subscription.Subscription, error) {
-	subs := make([]subscription.Subscription, 0)
+func (uc SubscriptionUsecase) ListSubscriptions(userID, pl string) ([]entity.Subscription, error) {
+	subs := make([]entity.Subscription, 0)
 
 	// Get target playlist or default
 	playlist, err := uc.getTargetPlaylist(userID, pl)
@@ -46,8 +45,8 @@ func (uc SubscriptionUsecase) ListSubscriptions(userID, pl string) ([]subscripti
 	return subs, nil
 }
 
-func (uc SubscriptionUsecase) getTargetPlaylist(userID, pl string) (playlist.Playlist, error) {
-	var playlist playlist.Playlist
+func (uc SubscriptionUsecase) getTargetPlaylist(userID, pl string) (entity.Playlist, error) {
+	var playlist entity.Playlist
 
 	if pl != "" {
 		_, err := uuid.Parse(pl)

@@ -1,4 +1,4 @@
-package rss
+package entity
 
 import (
 	"encoding/xml"

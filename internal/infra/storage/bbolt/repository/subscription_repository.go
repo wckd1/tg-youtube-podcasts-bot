@@ -4,7 +4,8 @@ import (
 	"errors"
 	"log"
 	"wckd1/tg-youtube-podcasts-bot/internal/converter"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/subscription"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/entity"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/repository"
 	"wckd1/tg-youtube-podcasts-bot/internal/infra/storage/bbolt"
 
 	bolt "go.etcd.io/bbolt"
@@ -12,13 +13,13 @@ import (
 
 const subscriptionsBucketName = "subscriptions"
 
-var _ subscription.SubscriptionRepository = (*SubscriptionRepository)(nil)
+var _ repository.SubscriptionRepository = (*SubscriptionRepository)(nil)
 
 type SubscriptionRepository struct {
 	store *bbolt.BBoltStore
 }
 
-func NewSubscriptionRepository(store *bbolt.BBoltStore) subscription.SubscriptionRepository {
+func NewSubscriptionRepository(store *bbolt.BBoltStore) repository.SubscriptionRepository {
 	return &SubscriptionRepository{store}
 }
 
@@ -26,19 +27,19 @@ func (r *SubscriptionRepository) CheckExist(id string) error {
 	return r.store.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(subscriptionsBucketName))
 		if b == nil {
-			return subscription.ErrNoSubscriptionsStorage
+			return repository.ErrNoSubscriptionsStorage
 		}
 
 		subData := b.Get([]byte(id))
 		if subData == nil {
-			return subscription.ErrSubscriptionNotFound
+			return repository.ErrSubscriptionNotFound
 		}
 
 		return nil
 	})
 }
 
-func (r SubscriptionRepository) SaveSubsctiption(sub *subscription.Subscription) error {
+func (r SubscriptionRepository) SaveSubsctiption(sub *entity.Subscription) error {
 	return r.store.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists([]byte(subscriptionsBucketName))
 		if err != nil {
@@ -47,29 +48,29 @@ func (r SubscriptionRepository) SaveSubsctiption(sub *subscription.Subscription)
 
 		subData, err := converter.SubscriptionToBinary(sub)
 		if err != nil {
-			return errors.Join(subscription.ErrSubscriptionEncoding, err)
+			return errors.Join(repository.ErrSubscriptionEncoding, err)
 		}
 		return b.Put([]byte(sub.ID()), subData)
 	})
 }
 
-func (r SubscriptionRepository) GetSubscription(id string) (subscription.Subscription, error) {
-	var sub subscription.Subscription
+func (r SubscriptionRepository) GetSubscription(id string) (entity.Subscription, error) {
+	var sub entity.Subscription
 
 	err := r.store.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(subscriptionsBucketName))
 		if b == nil {
-			return subscription.ErrNoSubscriptionsStorage
+			return repository.ErrNoSubscriptionsStorage
 		}
 
 		subData := b.Get([]byte(id))
 		if subData == nil {
-			return subscription.ErrSubscriptionNotFound
+			return repository.ErrSubscriptionNotFound
 		}
 
 		decodedSub, err := converter.BinaryToSubscription(subData)
 		if err != nil {
-			return errors.Join(subscription.ErrSubscriptionDecoding, err)
+			return errors.Join(repository.ErrSubscriptionDecoding, err)
 		}
 		sub = decodedSub
 		return nil
@@ -78,13 +79,13 @@ func (r SubscriptionRepository) GetSubscription(id string) (subscription.Subscri
 	return sub, err
 }
 
-func (r SubscriptionRepository) GetSubscriptions() ([]subscription.Subscription, error) {
-	var result []subscription.Subscription
+func (r SubscriptionRepository) GetSubscriptions() ([]entity.Subscription, error) {
+	var result []entity.Subscription
 
 	err := r.store.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(subscriptionsBucketName))
 		if b == nil {
-			return subscription.ErrNoSubscriptionsStorage
+			return repository.ErrNoSubscriptionsStorage
 		}
 
 		c := b.Cursor()
@@ -92,7 +93,7 @@ func (r SubscriptionRepository) GetSubscriptions() ([]subscription.Subscription,
 		for k, v := c.First(); k != nil; k, v = c.Next() {
 			sub, err := converter.BinaryToSubscription(v)
 			if err != nil {
-				log.Printf("[WARN] failed to unmarshal, %+v", errors.Join(subscription.ErrSubscriptionDecoding, err))
+				log.Printf("[WARN] failed to unmarshal, %+v", errors.Join(repository.ErrSubscriptionDecoding, err))
 				continue
 			}
 			result = append(result, sub)

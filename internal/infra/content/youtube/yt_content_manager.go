@@ -13,9 +13,8 @@ import (
 	"strings"
 	"sync"
 	"time"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/entity"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/service"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/subscription"
 	"wckd1/tg-youtube-podcasts-bot/internal/infra/content"
 
 	"github.com/google/uuid"
@@ -47,17 +46,17 @@ func NewYouTubeContentManager() (*youTubeContentManager, error) {
 	return &youTubeContentManager{}, nil
 }
 
-func (cm youTubeContentManager) Get(ctx context.Context, url string) (episode.Episode, error) {
+func (cm youTubeContentManager) Get(ctx context.Context, url string) (entity.Episode, error) {
 	info, err := getInfo(ctx, url)
 	if err != nil {
 		log.Printf("[ERROR] failed to get info: %v", err)
-		return episode.Episode{}, err
+		return entity.Episode{}, err
 	}
 
 	return infoToEpisode(info)
 }
 
-func (cm youTubeContentManager) CheckUpdate(ctx context.Context, sub subscription.Subscription) (eps []episode.Episode, err error) {
+func (cm youTubeContentManager) CheckUpdate(ctx context.Context, sub entity.Subscription) (eps []entity.Episode, err error) {
 	id := uuid.New().String()
 
 	// Prepare yt-dlp command
@@ -85,7 +84,7 @@ func (cm youTubeContentManager) CheckUpdate(ctx context.Context, sub subscriptio
 		return
 	}
 
-	resps := make(chan episode.Episode)
+	resps := make(chan entity.Episode)
 	wg := sync.WaitGroup{}
 	wg.Add(len(dlFiles))
 
@@ -171,7 +170,7 @@ func executeCommand(ctx context.Context, cmdStr string) error {
 	return cmd.Run()
 }
 
-func infoToEpisode(info content.FileInfo) (episode.Episode, error) {
+func infoToEpisode(info content.FileInfo) (entity.Episode, error) {
 	var format content.Format
 	for _, f := range info.Formats {
 		if f.ID == "140" {
@@ -182,10 +181,10 @@ func infoToEpisode(info content.FileInfo) (episode.Episode, error) {
 
 	pubDate, err := time.Parse("20060102", info.Date)
 	if err != nil {
-		return episode.Episode{}, err
+		return entity.Episode{}, err
 	}
 
-	return episode.NewEpisode(
+	return entity.NewEpisode(
 		info.ID,
 		"audio/"+format.Extension,
 		format.URL,

@@ -1,14 +1,13 @@
 package converter
 
 import (
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/rss"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/entity"
 )
 
-func EpisodeToRSSEpisode(ep *episode.Episode) rss.RSSEpisode {
-	return rss.RSSEpisode{
+func EpisodeToRSSEpisode(ep *entity.Episode) entity.RSSEpisode {
+	return entity.RSSEpisode{
 		UUID: ep.ID(),
-		Enclosure: rss.Enclosure{
+		Enclosure: entity.Enclosure{
 			URL:    ep.URL(),
 			Length: ep.Length(),
 			Type:   ep.AudioType(),

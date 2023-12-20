@@ -1,6 +1,9 @@
-package playlist
+package repository
 
-import "errors"
+import (
+	"errors"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/entity"
+)
 
 var (
 	ErrNoPlaylistsStorage = errors.New("no saved playlists")
@@ -10,9 +13,9 @@ var (
 )
 
 type PlaylistRepository interface {
-	SavePlaylist(playlist *Playlist) error
-	GetPlaylist(id string) (Playlist, error)
-	GetPlaylistByName(name string) (Playlist, error)
-	GetPlaylistsWithSubscription(subID string) ([]Playlist, error)
+	SavePlaylist(playlist *entity.Playlist) error
+	GetPlaylist(id string) (entity.Playlist, error)
+	GetPlaylistByName(name string) (entity.Playlist, error)
+	GetPlaylistsWithSubscription(subID string) ([]entity.Playlist, error)
 	DeletePlaylist(id string) error
 }

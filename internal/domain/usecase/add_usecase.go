@@ -4,11 +4,9 @@ import (
 	"context"
 	"errors"
 	"time"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/playlist"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/entity"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/repository"
 	"wckd1/tg-youtube-podcasts-bot/internal/domain/service"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/subscription"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/user"
 
 	"github.com/google/uuid"
 )
@@ -20,18 +18,18 @@ var (
 )
 
 type AddUsecase struct {
-	userRepository         user.UserRepository
-	playlistRepository     playlist.PlaylistRepository
-	episodeRepository      episode.EpisodeRepository
-	subscriptionRepository subscription.SubscriptionRepository
+	userRepository         repository.UserRepository
+	playlistRepository     repository.PlaylistRepository
+	episodeRepository      repository.EpisodeRepository
+	subscriptionRepository repository.SubscriptionRepository
 	contentManager         service.ContentManager
 }
 
 func NewAddUsecase(
-	userRepository user.UserRepository,
-	playlistRepository playlist.PlaylistRepository,
-	episodeRepository episode.EpisodeRepository,
-	subscriptionRepository subscription.SubscriptionRepository,
+	userRepository repository.UserRepository,
+	playlistRepository repository.PlaylistRepository,
+	episodeRepository repository.EpisodeRepository,
+	subscriptionRepository repository.SubscriptionRepository,
 	contentManager service.ContentManager,
 ) *AddUsecase {
 	return &AddUsecase{userRepository, playlistRepository, episodeRepository, subscriptionRepository, contentManager}
@@ -85,8 +83,8 @@ func (uc AddUsecase) AddSubscription(userID, id, url, pl, filter string) error {
 
 	if err != nil {
 		// Create subscribtion if not exist
-		if errors.Is(err, subscription.ErrSubscriptionNotFound) || errors.Is(err, subscription.ErrNoSubscriptionsStorage) {
-			sub := subscription.NewSubscription(id, url, filter, time.Now())
+		if errors.Is(err, repository.ErrSubscriptionNotFound) || errors.Is(err, repository.ErrNoSubscriptionsStorage) {
+			sub := entity.NewSubscription(id, url, filter, time.Now())
 			// Save episode to database
 			err = uc.subscriptionRepository.SaveSubsctiption(&sub)
 			if err != nil {
@@ -107,8 +105,8 @@ func (uc AddUsecase) AddSubscription(userID, id, url, pl, filter string) error {
 	return nil
 }
 
-func (uc AddUsecase) getTargetPlaylist(userID, pl string) (playlist.Playlist, error) {
-	var playlist playlist.Playlist
+func (uc AddUsecase) getTargetPlaylist(userID, pl string) (entity.Playlist, error) {
+	var playlist entity.Playlist
 
 	if pl != "" {
 		_, err := uuid.Parse(pl)
@@ -150,7 +148,7 @@ func (uc AddUsecase) fetchEpisodeIfNeeded(id, url string) error {
 
 	if err != nil {
 		// Fetch and save episode if not exists
-		if errors.Is(err, episode.ErrEpisodeNotFound) || errors.Is(err, episode.ErrNoEpisodesStorage) {
+		if errors.Is(err, repository.ErrEpisodeNotFound) || errors.Is(err, repository.ErrNoEpisodesStorage) {
 			// Content manager get episode
 			ctx := context.Background()
 			ep, err := uc.contentManager.Get(ctx, url)

@@ -3,10 +3,10 @@ package converter
 import (
 	"encoding/json"
 	"fmt"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/playlist"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/entity"
 )
 
-func PlaylistToBinary(p *playlist.Playlist) ([]byte, error) {
+func PlaylistToBinary(p *entity.Playlist) ([]byte, error) {
 	sData := map[string]interface{}{
 		"id":            p.ID(),
 		"name":          p.Name(),
@@ -17,25 +17,25 @@ func PlaylistToBinary(p *playlist.Playlist) ([]byte, error) {
 	return json.Marshal(sData)
 }
 
-func BinaryToPlaylist(d []byte) (playlist.Playlist, error) {
+func BinaryToPlaylist(d []byte) (entity.Playlist, error) {
 	var plData map[string]interface{}
 	if err := json.Unmarshal(d, &plData); err != nil {
-		return playlist.Playlist{}, err
+		return entity.Playlist{}, err
 	}
 
 	id, ok := plData["id"].(string)
 	if !ok {
-		return playlist.Playlist{}, fmt.Errorf("missing or invalid ID field")
+		return entity.Playlist{}, fmt.Errorf("missing or invalid ID field")
 	}
 
 	name, ok := plData["name"].(string)
 	if !ok {
-		return playlist.Playlist{}, fmt.Errorf("missing or invalid Name field")
+		return entity.Playlist{}, fmt.Errorf("missing or invalid Name field")
 	}
 
 	epInterfase, ok := plData["episodes"]
 	if !ok {
-		return playlist.Playlist{}, fmt.Errorf("missing Episodes field")
+		return entity.Playlist{}, fmt.Errorf("missing Episodes field")
 	}
 	var episodes []string
 	if epSlice, ok := epInterfase.([]interface{}); ok {
@@ -43,14 +43,14 @@ func BinaryToPlaylist(d []byte) (playlist.Playlist, error) {
 			if str, isString := item.(string); isString {
 				episodes = append(episodes, str)
 			} else {
-				return playlist.Playlist{}, fmt.Errorf("invalid Episodes field")
+				return entity.Playlist{}, fmt.Errorf("invalid Episodes field")
 			}
 		}
 	}
 
 	subInterface, ok := plData["subscriptions"]
 	if !ok {
-		return playlist.Playlist{}, fmt.Errorf("missing Subscriptions field")
+		return entity.Playlist{}, fmt.Errorf("missing Subscriptions field")
 	}
 	var subscriptions []string
 	if subSlice, ok := subInterface.([]interface{}); ok {
@@ -58,14 +58,14 @@ func BinaryToPlaylist(d []byte) (playlist.Playlist, error) {
 			if str, isString := item.(string); isString {
 				subscriptions = append(subscriptions, str)
 			} else {
-				return playlist.Playlist{}, fmt.Errorf("invalid Subscriptions field")
+				return entity.Playlist{}, fmt.Errorf("invalid Subscriptions field")
 			}
 		}
 	}
 
-	return playlist.NewPlaylist(id, name, episodes, subscriptions), nil
+	return entity.NewPlaylist(id, name, episodes, subscriptions), nil
 }
 
-func PlaylistToString(pl *playlist.Playlist) string {
+func PlaylistToString(pl *entity.Playlist) string {
 	return fmt.Sprintf("id: %s, name: %s", pl.ID(), pl.Name())
 }

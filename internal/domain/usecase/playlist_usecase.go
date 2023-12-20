@@ -2,26 +2,26 @@ package usecase
 
 import (
 	"log"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/playlist"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/user"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/entity"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/repository"
 
 	"github.com/google/uuid"
 )
 
 type PlaylistUsecase struct {
-	userRepository     user.UserRepository
-	playlistRepository playlist.PlaylistRepository
+	userRepository     repository.UserRepository
+	playlistRepository repository.PlaylistRepository
 }
 
 func NewPlaylistUsecase(
-	userRepository user.UserRepository,
-	playlistRepository playlist.PlaylistRepository,
+	userRepository repository.UserRepository,
+	playlistRepository repository.PlaylistRepository,
 ) *PlaylistUsecase {
 	return &PlaylistUsecase{userRepository, playlistRepository}
 }
 
-func (uc PlaylistUsecase) ListPlaylists(userID string) ([]playlist.Playlist, error) {
-	pls := make([]playlist.Playlist, 0)
+func (uc PlaylistUsecase) ListPlaylists(userID string) ([]entity.Playlist, error) {
+	pls := make([]entity.Playlist, 0)
 
 	// Get user's default playlist
 	user, err := uc.userRepository.GetUser(userID)
@@ -50,7 +50,7 @@ func (uc PlaylistUsecase) ListPlaylists(userID string) ([]playlist.Playlist, err
 	return pls, nil
 }
 
-func (uc PlaylistUsecase) CreatePlaylist(userID, name string) (*playlist.Playlist, error) {
+func (uc PlaylistUsecase) CreatePlaylist(userID, name string) (*entity.Playlist, error) {
 	// Get user
 	user, err := uc.userRepository.GetUser(userID)
 	if err != nil {
@@ -59,7 +59,7 @@ func (uc PlaylistUsecase) CreatePlaylist(userID, name string) (*playlist.Playlis
 
 	// Create new playlist
 	id := uuid.NewString()
-	pl := playlist.NewPlaylist(id, name, []string{}, []string{})
+	pl := entity.NewPlaylist(id, name, []string{}, []string{})
 
 	if err := uc.playlistRepository.SavePlaylist(&pl); err != nil {
 		return &pl, err

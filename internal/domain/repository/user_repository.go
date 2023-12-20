@@ -1,6 +1,9 @@
-package user
+package repository
 
-import "errors"
+import (
+	"errors"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/entity"
+)
 
 var (
 	ErrNoUsersStorage = errors.New("no saved users")
@@ -10,7 +13,7 @@ var (
 )
 
 type UserRepository interface {
-	SaveUser(user *User) error
-	GetUser(id string) (User, error)
+	SaveUser(user *entity.User) error
+	GetUser(id string) (entity.User, error)
 	DeleteUser(id string) error
 }

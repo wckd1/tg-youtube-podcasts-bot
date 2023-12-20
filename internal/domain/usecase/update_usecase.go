@@ -4,10 +4,8 @@ import (
 	"errors"
 	"log"
 	"time"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/playlist"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/subscription"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/user"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/entity"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/repository"
 )
 
 var (
@@ -16,23 +14,23 @@ var (
 )
 
 type UpdateUsecase struct {
-	userRepository         user.UserRepository
-	playlistRepository     playlist.PlaylistRepository
-	episodeRepository      episode.EpisodeRepository
-	subscriptionRepository subscription.SubscriptionRepository
+	userRepository         repository.UserRepository
+	playlistRepository     repository.PlaylistRepository
+	episodeRepository      repository.EpisodeRepository
+	subscriptionRepository repository.SubscriptionRepository
 }
 
 func NewUpdateUsecase(
-	userRepository user.UserRepository,
-	playlistRepository playlist.PlaylistRepository,
-	episodeRepository episode.EpisodeRepository,
-	subscriptionRepository subscription.SubscriptionRepository,
+	userRepository repository.UserRepository,
+	playlistRepository repository.PlaylistRepository,
+	episodeRepository repository.EpisodeRepository,
+	subscriptionRepository repository.SubscriptionRepository,
 ) *UpdateUsecase {
 	return &UpdateUsecase{userRepository, playlistRepository, episodeRepository, subscriptionRepository}
 }
 
-func (uc UpdateUsecase) GetPendingSubscriptions() ([]subscription.Subscription, error) {
-	pSubs := make([]subscription.Subscription, 0)
+func (uc UpdateUsecase) GetPendingSubscriptions() ([]entity.Subscription, error) {
+	pSubs := make([]entity.Subscription, 0)
 
 	// Get all subscriptions
 	subs, err := uc.subscriptionRepository.GetSubscriptions()
@@ -60,7 +58,7 @@ func (uc UpdateUsecase) GetPendingSubscriptions() ([]subscription.Subscription, 
 	return pSubs, nil
 }
 
-func (uc UpdateUsecase) SaveEpisode(ep *episode.Episode, subID string) error {
+func (uc UpdateUsecase) SaveEpisode(ep *entity.Episode, subID string) error {
 	// Save episode
 	err := uc.episodeRepository.SaveEpisode(ep)
 	if err != nil {
@@ -86,7 +84,7 @@ func (uc UpdateUsecase) SaveEpisode(ep *episode.Episode, subID string) error {
 	return nil
 }
 
-func (uc UpdateUsecase) SaveSubsctiption(sub *subscription.Subscription, lastUpdated time.Time) error {
+func (uc UpdateUsecase) SaveSubsctiption(sub *entity.Subscription, lastUpdated time.Time) error {
 	sub.SetLastUpdated(time.Now())
 	return uc.subscriptionRepository.SaveSubsctiption(sub)
 }

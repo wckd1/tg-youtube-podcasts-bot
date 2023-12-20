@@ -2,8 +2,8 @@ package usecase
 
 import (
 	"errors"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/playlist"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/user"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/entity"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/repository"
 
 	"github.com/google/uuid"
 )
@@ -17,13 +17,13 @@ var (
 )
 
 type RegisterUsecase struct {
-	userRepository     user.UserRepository
-	playlistRepository playlist.PlaylistRepository
+	userRepository     repository.UserRepository
+	playlistRepository repository.PlaylistRepository
 }
 
 func NewRegisterUsecase(
-	userRepository user.UserRepository,
-	playlistRepository playlist.PlaylistRepository,
+	userRepository repository.UserRepository,
+	playlistRepository repository.PlaylistRepository,
 ) *RegisterUsecase {
 	return &RegisterUsecase{userRepository, playlistRepository}
 }
@@ -37,13 +37,13 @@ func (uc RegisterUsecase) RegisterUser(id string) error {
 
 	// Create default playlist
 	plID := uuid.NewString()
-	playlist := playlist.NewPlaylist(plID, playlist.DefaultPlaylistName, []string{}, []string{})
+	playlist := entity.NewPlaylist(plID, entity.DefaultPlaylistName, []string{}, []string{})
 	if err = uc.playlistRepository.SavePlaylist(&playlist); err != nil {
 		return errors.Join(ErrPlaylistCreate, err)
 	}
 
 	// Create new user
-	user := user.NewUser(id, playlist.ID(), []string{})
+	user := entity.NewUser(id, playlist.ID(), []string{})
 
 	// Save user
 	if err = uc.userRepository.SaveUser(&user); err != nil {

@@ -1,6 +1,9 @@
-package episode
+package repository
 
-import "errors"
+import (
+	"errors"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/entity"
+)
 
 var (
 	ErrNoEpisodesStorage = errors.New("no saved episodes")
@@ -11,6 +14,6 @@ var (
 
 type EpisodeRepository interface {
 	CheckExist(id string) error
-	SaveEpisode(e *Episode) error
-	GetEpisode(id string) (Episode, error)
+	SaveEpisode(e *entity.Episode) error
+	GetEpisode(id string) (entity.Episode, error)
 }

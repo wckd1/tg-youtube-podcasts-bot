@@ -1,6 +1,9 @@
-package subscription
+package repository
 
-import "errors"
+import (
+	"errors"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/entity"
+)
 
 var (
 	ErrNoSubscriptionsStorage = errors.New("no saved subscriptions")
@@ -11,7 +14,7 @@ var (
 
 type SubscriptionRepository interface {
 	CheckExist(id string) error
-	SaveSubsctiption(sub *Subscription) error
-	GetSubscription(id string) (Subscription, error)
-	GetSubscriptions() ([]Subscription, error)
+	SaveSubsctiption(sub *entity.Subscription) error
+	GetSubscription(id string) (entity.Subscription, error)
+	GetSubscriptions() ([]entity.Subscription, error)
 }

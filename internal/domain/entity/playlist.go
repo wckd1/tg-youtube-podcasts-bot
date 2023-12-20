@@ -1,4 +1,4 @@
-package playlist
+package entity
 
 const DefaultPlaylistName = "default"
 

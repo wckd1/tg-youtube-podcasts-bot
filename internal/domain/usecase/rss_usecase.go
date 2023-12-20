@@ -5,9 +5,8 @@ import (
 	"errors"
 	"log"
 	"wckd1/tg-youtube-podcasts-bot/internal/converter"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/episode"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/playlist"
-	"wckd1/tg-youtube-podcasts-bot/internal/domain/rss"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/entity"
+	"wckd1/tg-youtube-podcasts-bot/internal/domain/repository"
 )
 
 var (
@@ -16,21 +15,22 @@ var (
 )
 
 type RSSUseCase struct {
-	playlistRepository playlist.PlaylistRepository
-	episodeRepository  episode.EpisodeRepository
+	playlistRepository repository.PlaylistRepository
+	episodeRepository  repository.EpisodeRepository
 }
 
-func NewRSSUseCase(playlistRepository playlist.PlaylistRepository, episodeRepository episode.EpisodeRepository) *RSSUseCase {
+func NewRSSUseCase(playlistRepository repository.PlaylistRepository, episodeRepository repository.EpisodeRepository) *RSSUseCase {
 	return &RSSUseCase{playlistRepository, episodeRepository}
 }
 
+// TODO: Return playlist with episodes, bultd xml on delivery layer
 func (uc RSSUseCase) BuildRSS(plID string) (string, error) {
 	// Get playlist
 	pl, err := uc.playlistRepository.GetPlaylist(plID)
 	if err != nil {
 		return "", errors.Join(ErrGetEpisodes, err)
 	}
-	items := make([]rss.RSSEpisode, 0)
+	items := make([]entity.RSSEpisode, 0)
 
 	// Get playlist's episodes
 	for _, epID := range pl.Episodes() {
@@ -44,12 +44,12 @@ func (uc RSSUseCase) BuildRSS(plID string) (string, error) {
 
 	// Get playlist's information
 	title := pl.Name()
-	if title == playlist.DefaultPlaylistName {
+	if title == entity.DefaultPlaylistName {
 		title = "Private RSS feed"
 	}
 
 	// Build RSS
-	rss := rss.RSS{
+	rss := entity.RSS{
 		Version:        "2.0",
 		NsItunes:       "http://www.itunes.com/dtds/podcast-1.0.dtd",
 		Title:          title,
